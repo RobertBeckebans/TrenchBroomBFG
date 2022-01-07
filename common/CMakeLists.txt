@@ -25,6 +25,7 @@ set(COMMON_SOURCE
         ${COMMON_SOURCE_DIR}/EL/Value.cpp
         ${COMMON_SOURCE_DIR}/EL/VariableStore.cpp
         ${COMMON_SOURCE_DIR}/IO/AseParser.cpp
+        ${COMMON_SOURCE_DIR}/IO/AssimpParser.cpp
         ${COMMON_SOURCE_DIR}/IO/BrushFaceReader.cpp
         ${COMMON_SOURCE_DIR}/IO/Bsp29Parser.cpp
         ${COMMON_SOURCE_DIR}/IO/CompilationConfigParser.cpp
@@ -510,6 +511,7 @@ set(COMMON_HEADER
         ${COMMON_SOURCE_DIR}/EL/Value.h
         ${COMMON_SOURCE_DIR}/EL/VariableStore.h
         ${COMMON_SOURCE_DIR}/IO/AseParser.h
+        ${COMMON_SOURCE_DIR}/IO/AssimpParser.h
         ${COMMON_SOURCE_DIR}/IO/BrushFaceReader.h
         ${COMMON_SOURCE_DIR}/IO/Bsp29Parser.h
         ${COMMON_SOURCE_DIR}/IO/CompilationConfigParser.h
@@ -1011,7 +1013,8 @@ add_library(common OBJECT ${COMMON_SOURCE} ${COMMON_HEADER})
 set_target_properties(common PROPERTIES AUTOMOC TRUE)
 target_compile_features(common PRIVATE cxx_std_17)
 target_include_directories(common PUBLIC ${COMMON_SOURCE_DIR})
-target_link_libraries(common PUBLIC tinyxml2 kdl vecmath glew miniz freeimage freetype OpenGL::GL Qt5::Widgets Qt5::Svg fmt::fmt)
+#target_include_directories(common PUBLIC "${CMAKE_SOURCE_DIR}/lib/assimp/include")
+target_link_libraries(common PUBLIC tinyxml2 kdl vecmath glew miniz freeimage freetype OpenGL::GL Qt5::Widgets Qt5::Svg fmt::fmt assimp)
 
 # use precompiled headers on CMake 3.16 or later
 if (NOT TB_SUPPRESS_PCH AND ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16.0")
