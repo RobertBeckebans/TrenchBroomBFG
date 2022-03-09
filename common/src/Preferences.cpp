@@ -208,6 +208,9 @@ Preference<Color> TextureBrowserSelectedColor(
   IO::Path("Texture Browser/Selected color"), Color(1.0f, 0.0f, 0.0f, 1.0f));
 Preference<Color> TextureBrowserUsedColor(
   IO::Path("Texture Browser/Used color"), Color(1.0f, 0.7f, 0.0f, 1.0f));
+// RB: mark translucent materials
+Preference<Color> TextureBrowserTranslucentColor(
+  IO::Path("Texture Browser/Translucent material color"), Color(0.6f, 0.0f, 0.6f, 1.0f));
 
 Preference<float> CameraLookSpeed(IO::Path("Controls/Camera/Look speed"), 0.5f);
 Preference<bool> CameraLookInvertH(IO::Path("Controls/Camera/Invert horizontal look"), false);
@@ -374,6 +377,7 @@ const std::vector<PreferenceBase*>& staticPreferences() {
     &TextureBrowserDefaultColor,
     &TextureBrowserSelectedColor,
     &TextureBrowserUsedColor,
+    &TextureBrowserTranslucentColor,
     &CameraLookSpeed,
     &CameraLookInvertH,
     &CameraLookInvertV,

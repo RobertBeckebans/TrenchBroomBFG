@@ -2,7 +2,7 @@
 
 ***This is still very much Work in Progress and not supported by the official TrenchBroom yet.***
 
-<img src="https://i.imgur.com/wPPYvE3.jpg">
+<img src="https://i.imgur.com/3sUxOZi.jpg">
 
 <img src="https://i.imgur.com/3g3Qmf4.jpg">
 
@@ -18,7 +18,7 @@ TrenchBroom's abilities for Doom 3 are still limited at the moment.
 
 You can only save maps to the Doom 3 (Valve) format but you can copy paste from the vanilla Doom 3 .map format into the Doom 3 (Valve)configuration and reset your texture alignment as you want.
 
-RBDOOM-3-BFG >= 1.3.1 also has the console command `convertMaptoValve220 <mapname>` which lets you easily convert any original Doom 3 (and BFG) .map and saves it with the _valve220.map suffix. This command prepares Doom 3 maps for editing in TrenchBroom and saves a lot of additional work in this TrenchBroom fork.
+RBDOOM-3-BFG >= 1.4 also has the console command `convertMaptoValve220 <mapname>` which lets you easily convert any original Doom 3 (and BFG) .map and saves it with the _valve220.map suffix. This command prepares Doom 3 maps for editing in TrenchBroom and saves a lot of additional work in this TrenchBroom fork.
 In addition the RBDOOM-3-BFG engine framework and ingame light editor can also save light settings, new entities or placed ragdolls back to the new Doom 3 (Valve) .map format so both programs interop with each other.
 
 Here is an overview of the changes made to TrenchBroom:
@@ -26,21 +26,27 @@ Here is an overview of the changes made to TrenchBroom:
 ## New
 * Doom 3 .map parser with brushDef3, patchDef2, patchDef3 primitives
 * Doom 3 Valve .map configuration
-* Quake 3 .shader parser adopted to support .mtr materials
-* .mtr support includes support for Doom 3 diffuse stages and the lookup for them is like in idMaterial::GetEditorImage()
-* New Doom 3 OBJ parser. My TB Interop branch automatically creates OBJ files to work with TB and it also allows seamless interop with Blender 2.8x and 2.9x with the need of additional model formats for func_static entities (like misc_model for Quake 3)
+* Quake 3 .shader parser adopted to support .mtr materials. It includes support for Doom 3 diffuse stages and the lookup for them is like in idMaterial::GetEditorImage()
+* New Doom 3 OBJ parser. My TB Interop branch automatically creates OBJ files to work with TB and it also allows seamless interop with Blender 2.8x - 3.x without the need of additional model formats
+* RBDOOM-3-BFG >= 1.4 ships with TB specific helper entities like misc_model or func_rotating_model to reflect TrenchBroom's clean architecture and differentiation between Brush Entities and Point Entities
 * Game FGDs for Doom 3 and Doom 3 BFG
 * Custom PNG icons for special entities like lights, speakers, particle emitters, info_location, target_* and so on
+* After loading a map TrenchBroom generates unique entity names and also fixes missing or bad "model" keys for brush based entitites
+* Creating new entities like a light will automatically receive unique names like light_2
+* Changed Rotation Tool behaviour to use "angles" by default
+* Translucent materials that might cause BSP leaks have a purple rectangle border in the Texture Browser
+* Changed OBJ exporter so exported models can be easier reimported by RBDOOM-3-BFG
 
 ## Issues
 * It doesn't allow to create bezier patches at the moment so you won't be able to edit existing Doom 3 maps
-* TrenchBroom doesn't support brush primitives like in D3Radiant or DarkRadiant
-* It has no support for BFG .resource files and .bimage files. BFG only shipped with precompressed textures and no .tga files so people who want to mod for BFG have to copy the vanilla Doom 3 base/textures/* and base/models/* to D3BFG/base/
+* TrenchBroom doesn't support brush primitives like in D3Radiant or DarkRadiant. Use the Valve 220 .map format instead
+* It has no support for BFG .resource files and .bimage files. You need to call `exportImagesToTrenchBroom` in RBDoom's console once to have all images available in base/_tb/textures/ as PNG format. 
 * Many entities work differently in Doom 3 if they have an origin. Brush work in D3 is usually stored in entity space and not world space. This is a major issue and not solved within TrenchBroom. However as a workaround you can use the convertMapToValve220 engine command to prepare a Doom 3 map for the TrenchBroom Doom 3 (Valve) configuration.
-* Doom 3's primary model formats are LWO and ASE. LWO and .md5mesh model support is missing.
-* Some ASE models can't be loaded and materials are usually all wrong if loaded
-* TrenchBroom doesn't support the "rotation" keyword and many models have the wrong orientation
+* Doom 3's primary model formats are LWO and ASE. LWO and .md5mesh model support is missing. (not an issue with the BFG edition)
+* Some ASE models can't be loaded and materials are usually all wrong if loaded (not an issue with the BFG edition)
+* TrenchBroom doesn't support the "rotation" keyword and many models have the wrong orientation (not an issue with the BFG edition)
 * The custom TrenchBroom build breaks compatibility for other id Tech engines, e.g. entity links work between "target[num]" and "name" and not "targetname"
+* Linked groups do not work yet with id Tech 4 due to name conflicts
 
 
 ## Releases

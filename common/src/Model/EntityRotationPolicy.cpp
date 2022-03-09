@@ -181,6 +181,19 @@ EntityRotationPolicy::RotationInfo EntityRotationPolicy::rotationInfo(const Enti
     (pitchType == Assets::PitchType::MdlInverted ? RotationType::Euler
                                                  : RotationType::Euler_PositivePitchDown);
 
+#if 1
+  // RB: change default behaviour for Doom 3. Only use angle if already defined and angles by
+  // default
+
+  if (entity.hasProperty(EntityPropertyKeys::Angle)) {
+    type = RotationType::AngleUpDown;
+    propertyKey = EntityPropertyKeys::Angle;
+  } else {
+    type = eulerType;
+    propertyKey = EntityPropertyKeys::Angles;
+  }
+
+#else
   // determine the type of rotation to apply to this entity
   const auto classname = entity.classname();
   if (classname != EntityPropertyValues::NoClassname) {
@@ -240,6 +253,7 @@ EntityRotationPolicy::RotationInfo EntityRotationPolicy::rotationInfo(const Enti
       }
     }
   }
+#endif
 
   return RotationInfo{type, propertyKey, usage};
 }

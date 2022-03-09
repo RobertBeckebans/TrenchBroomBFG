@@ -196,6 +196,11 @@ void Texture::setOpaque() {
   m_type = TextureType::Opaque;
 }
 
+// RB
+bool Texture::isTranslucentMaterial() const {
+  return (m_surfaceParms.find("translucent") != m_surfaceParms.end());
+}
+
 const std::set<std::string>& Texture::surfaceParms() const {
   return m_surfaceParms;
 }

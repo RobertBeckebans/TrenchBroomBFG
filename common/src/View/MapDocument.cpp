@@ -39,11 +39,13 @@
 #include "Model/BezierPatch.h"
 #include "Model/Brush.h"
 #include "Model/BrushBuilder.h"
+#include "Model/BrushEntityWithoutModelKeyIssueGenerator.h"
 #include "Model/BrushError.h"
 #include "Model/BrushFace.h"
 #include "Model/BrushGeometry.h"
 #include "Model/BrushNode.h"
 #include "Model/ChangeBrushFaceAttributesRequest.h"
+#include "Model/ConflictingTargetnameIssueGenerator.h"
 #include "Model/EditorContext.h"
 #include "Model/EmptyBrushEntityIssueGenerator.h"
 #include "Model/EmptyGroupIssueGenerator.h"
@@ -565,6 +567,10 @@ void MapDocument::exportDocumentAs(const IO::ExportOptions& options) {
 }
 
 void MapDocument::doSaveDocument(const IO::Path& path) {
+
+  // RB: HACK fix all duplicated names and wrong "model" values for brush entities
+  fixBadEntityNamesAndModels();
+
   saveDocumentTo(path);
   setLastSaveModificationCount();
   setPath(path);
@@ -1547,8 +1553,14 @@ Model::EntityNode* MapDocument::createPointEntity(
   const Assets::PointEntityDefinition* definition, const vm::vec3& delta) {
   ensure(definition != nullptr, "definition is null");
 
+  // RB: add unique entity name right from the beginning
+  std::string uniqueName;
+  m_world->generateUniqueTargetnameForClassname(definition->name(), uniqueName);
+
   auto* entityNode = new Model::EntityNode{Model::Entity{
-    m_world->entityPropertyConfig(), {{Model::EntityPropertyKeys::Classname, definition->name()}}}};
+    m_world->entityPropertyConfig(),
+    {{Model::EntityPropertyKeys::Classname, definition->name()},
+     {Model::EntityPropertyKeys::Targetname, uniqueName}}}};
 
   std::stringstream name;
   name << "Create " << definition->name();
@@ -1588,6 +1600,16 @@ Model::EntityNode* MapDocument::createBrushEntity(const Assets::BrushEntityDefin
 
   entity.addOrUpdateProperty(
     m_world->entityPropertyConfig(), Model::EntityPropertyKeys::Classname, definition->name());
+
+  // RB: add unique entity name right from the beginning and also avoid a missing "model" key
+  std::string uniqueName;
+  m_world->generateUniqueTargetnameForClassname(definition->name(), uniqueName);
+
+  entity.addOrUpdateProperty(
+    m_world->entityPropertyConfig(), Model::EntityPropertyKeys::Targetname, uniqueName);
+  entity.addOrUpdateProperty(
+    m_world->entityPropertyConfig(), Model::EntityPropertyKeys::Model, uniqueName);
+
   auto* entityNode = new Model::EntityNode(std::move(entity));
 
   std::stringstream name;
@@ -3644,6 +3666,9 @@ void MapDocument::loadAssets() {
   loadEntityModels();
   loadTextures();
   setTextures();
+
+  // RB: Doom 3 specific - give every entity a unique name if not done yet
+  fixBadEntityNamesAndModels();
 }
 
 void MapDocument::unloadAssets() {
@@ -3788,6 +3813,67 @@ void MapDocument::unsetTextures(const std::vector<Model::Node*>& nodes) {
   Model::Node::visitAll(nodes, makeUnsetTexturesVisitor());
   textureUsageCountsDidChangeNotifier();
 }
+
+// RB: give every entity a unique name like DoomEdit does
+void MapDocument::fixBadEntityNamesAndModels() {
+
+  m_world->accept(kdl::overload(
+    [](auto&& thisLambda, Model::WorldNode* world) {
+      world->visitChildren(thisLambda);
+    },
+    [](auto&& thisLambda, Model::LayerNode* layer) {
+      layer->visitChildren(thisLambda);
+    },
+    [](auto&& thisLambda, Model::GroupNode* group) {
+      group->visitChildren(thisLambda);
+    },
+    [=](Model::EntityNode* entityNode) {
+      // first fix missing or conflicting names for the game code
+      if (entityNode->hasMissingTargetname() || entityNode->hasConflictingTargetname()) {
+
+        std::string uniqueName;
+        entityNode->generateUniqueTargetname(uniqueName);
+
+        deselectAll();
+        select(entityNode);
+
+        setProperty(Model::EntityPropertyKeys::Targetname, uniqueName);
+
+        // second if this is a brush entity then Doom 3 can't load the model if there is no "model"
+        // key so make sure it has one and it's the same as the name
+        if (
+          entityNode->hasChildren() &&
+          entityNode != reinterpret_cast<Model::EntityNode*>(m_world.get())) {
+
+          setProperty(Model::EntityPropertyKeys::Model, uniqueName);
+
+          // nodesDidChange = true;
+        }
+      }
+
+      // check if the name was proper set if there are any bad model keys left
+      if (
+        entityNode->hasChildren() &&
+        entityNode != reinterpret_cast<Model::EntityNode*>(m_world.get()) &&
+        entityNode->hasBadModelname()) {
+        std::string uniqueName;
+        if (entityNode->getTargetname(uniqueName)) {
+          setProperty(Model::EntityPropertyKeys::Model, uniqueName);
+
+          // nodesDidChange = true;
+        }
+      }
+    },
+    [&](Model::BrushNode*) {}, [](Model::PatchNode*) {}));
+
+  deselectAll();
+
+  // clear issues in the issue browser
+  // FIXME: seems not to work
+  const auto nodes = std::vector<Model::Node*>{m_world.get()};
+  NotifyBeforeAndAfter notifyNodes(nodesWillChangeNotifier, nodesDidChangeNotifier, nodes);
+}
+// RB end
 
 static auto makeSetEntityDefinitionsVisitor(Assets::EntityDefinitionManager& manager) {
   // this helper lambda must be captured by value
@@ -4005,9 +4091,16 @@ void MapDocument::registerIssueGenerators() {
   m_world->registerIssueGenerator(new Model::EmptyGroupIssueGenerator());
   m_world->registerIssueGenerator(new Model::EmptyBrushEntityIssueGenerator());
   m_world->registerIssueGenerator(new Model::PointEntityWithBrushesIssueGenerator());
-  m_world->registerIssueGenerator(new Model::LinkSourceIssueGenerator());
+  // RB: LinkSourceIssueGenerator would be a bug with Doom 3 because entities are supposed to have
+  // unique names even there is no other entity targeting them
+  // m_world->registerIssueGenerator(new Model::LinkSourceIssueGenerator());
+
+  // Doom 3 specific: check that each entity has a unique name
+  m_world->registerIssueGenerator(new Model::ConflictingTargetnameIssueGenerator());
+  m_world->registerIssueGenerator(new Model::BrushEntityWithoutModelKeyIssueGenerator());
+
   m_world->registerIssueGenerator(new Model::LinkTargetIssueGenerator());
-  m_world->registerIssueGenerator(new Model::NonIntegerVerticesIssueGenerator());
+  // m_world->registerIssueGenerator(new Model::NonIntegerVerticesIssueGenerator());
   m_world->registerIssueGenerator(new Model::MixedBrushContentsIssueGenerator());
   m_world->registerIssueGenerator(new Model::WorldBoundsIssueGenerator(worldBounds()));
   m_world->registerIssueGenerator(new Model::SoftMapBoundsIssueGenerator(m_game, m_world.get()));

@@ -141,6 +141,8 @@ extern Preference<float> TextureBrowserIconSize;
 extern Preference<Color> TextureBrowserDefaultColor;
 extern Preference<Color> TextureBrowserSelectedColor;
 extern Preference<Color> TextureBrowserUsedColor;
+extern Preference<Color> TextureBrowserTranslucentColor; // RB: used to mark translucent Doom 3
+                                                         // materials that could create leaks
 
 extern Preference<float> CameraLookSpeed;
 extern Preference<bool> CameraLookInvertH;

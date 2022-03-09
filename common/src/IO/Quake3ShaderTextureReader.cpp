@@ -49,6 +49,14 @@ Assets::Texture Quake3ShaderTextureReader::doReadTexture(std::shared_ptr<File> f
       "Could not find texture path for shader '" + shader.shaderPath.asString() + "'");
   }
 
+#if 0
+  auto materialName = shader.shaderPath.asString();
+  if (materialName == "textures\\enpro\\encyl3") {
+    int i = 0;
+    i++;
+  }
+#endif
+
   auto texture = loadTextureImage(shader.shaderPath, texturePath);
   texture.setSurfaceParms(shader.surfaceParms);
   texture.setOpaque();
@@ -123,16 +131,65 @@ Path Quake3ShaderTextureReader::findTexturePath(const Assets::Quake3Shader& shad
 }
 
 Path Quake3ShaderTextureReader::findTexture(const Path& texturePath) const {
+
+  const auto extensions = std::vector<std::string>{"tga", "png", "jpg"};
+
+#if 1
+  // RB: faster and simpler code path
+  // this brings the loading time of mars_city1 down from 121 seconds to 9
+
   if (
     !texturePath.isEmpty() && (texturePath.extension().empty() || !m_fs.fileExists(texturePath))) {
-    const auto candidates = m_fs.findItemsWithBaseName(
-      texturePath, std::vector<std::string>{"tga", "png", "jpg", "jpeg"});
+    Path basename = texturePath.deleteExtension();
+
+    for (int i = 0; i < extensions.size(); i++) {
+      Path imagePath = basename.addExtension(extensions[i]);
+
+      if (m_fs.fileExists(imagePath)) {
+        return imagePath;
+      }
+    }
+
+    // RB: HACK retry with _tb/ prefix to avoid implementing the BFG filesystem and .bimage
+    // support
+    Path altPath("_tb");
+    altPath = altPath + texturePath;
+
+    basename = altPath.deleteExtension();
+
+    for (int i = 0; i < extensions.size(); i++) {
+      Path imagePath = basename.addExtension(extensions[i]);
+
+      if (m_fs.fileExists(imagePath)) {
+        return imagePath;
+      }
+    }
+
+    return Path();
+  }
+#else
+
+  if (
+    !texturePath.isEmpty() && (texturePath.extension().empty() || !m_fs.fileExists(texturePath))) {
+    const auto candidates = m_fs.findItemsWithBaseName(texturePath, extensions);
     if (!candidates.empty()) {
       return candidates.front();
     } else {
-      return Path();
+      // RB: HACK retry with _tb/ prefix to avoid implementing the BFG filesystem and .bimage
+      // support
+      Path altPath("_tb");
+      altPath = altPath + texturePath;
+
+      const auto candidates = m_fs.findItemsWithBaseName(altPath, extensions);
+      if (!candidates.empty()) {
+        return candidates.front();
+      } else {
+        return Path();
+      }
     }
   }
+#endif
+
   // texture path is empty OR (the extension is not empty AND the file exists)
   return texturePath;
 }

@@ -1,5 +1,6 @@
 /*
  Copyright (C) 2010-2017 Kristian Duske
+ Copyright (C) 2022 Robert Beckebans
 
  This file is part of TrenchBroom.
 
@@ -19,44 +20,25 @@
 
 #pragma once
 
-#include "FloatType.h"
-#include "View/Tool.h"
+#include "Model/IssueGenerator.h"
 
-#include <memory>
+#include <vector>
 
 namespace TrenchBroom {
-namespace View {
-class Grid;
-class InputState;
-class MapDocument;
+namespace Model {
+// Helper issue generator for Doom 3 because Doom doesn't allow entities with the same (target)name
+// Also Doom 3 does not call it targetname anymore. It's just name and every is supposed to have a
+// unique name
+class ConflictingTargetnameIssueGenerator : public IssueGenerator {
+private:
+  class ConflictingTargetnameIssue;
+  class ConflictingTargetnameIssueQuickFix;
 
-class MoveObjectsTool : public Tool {
 public:
-  typedef enum {
-    MR_Continue,
-    MR_Deny,
-    MR_Cancel
-  } MoveResult;
+  ConflictingTargetnameIssueGenerator();
 
 private:
-  std::weak_ptr<MapDocument> m_document;
-  bool m_duplicateObjects;
-
-public:
-  explicit MoveObjectsTool(std::weak_ptr<MapDocument> document);
-
-public:
-  const Grid& grid() const;
-
-  bool startMove(const InputState& inputState);
-  MoveResult move(const InputState& inputState, const vm::vec3& delta);
-  void endMove(const InputState& inputState);
-  void cancelMove();
-
-private:
-  bool duplicateObjects(const InputState& inputState) const;
-
-  QWidget* doCreatePage(QWidget* parent) override;
+  void doGenerate(EntityNodeBase* node, IssueList& issues) const override;
 };
-} // namespace View
+} // namespace Model
 } // namespace TrenchBroom

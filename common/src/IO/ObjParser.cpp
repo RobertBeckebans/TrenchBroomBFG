@@ -288,7 +288,7 @@ Doom3ObjParser::Doom3ObjParser(
   , m_fs(fs) {}
 
 bool Doom3ObjParser::transformObjCoordinateSet(
-  std::vector<vm::vec3f>& positions, std::vector<vm::vec2f>& texcoords) {
+  std::vector<vm::vec3f>&, std::vector<vm::vec2f>& texcoords) {
   for (vm::vec2f& uv : texcoords) {
     // This should be checked using the __TB_info_player_start model; Blender-defaults-output files
     // are consistent with Neverball.

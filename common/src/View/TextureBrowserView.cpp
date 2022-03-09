@@ -340,6 +340,9 @@ void TextureBrowserView::renderBounds(Layout& layout, const float y, const float
 const Color& TextureBrowserView::textureColor(const Assets::Texture& texture) const {
   if (&texture == m_selectedTexture)
     return pref(Preferences::TextureBrowserSelectedColor);
+  // RB: hint about translucent materials because they can cause leaks
+  if (texture.isTranslucentMaterial())
+    return pref(Preferences::TextureBrowserTranslucentColor);
   if (texture.usageCount() > 0)
     return pref(Preferences::TextureBrowserUsedColor);
   return pref(Preferences::TextureBrowserDefaultColor);

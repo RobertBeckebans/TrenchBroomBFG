@@ -46,7 +46,8 @@ std::ostream& operator<<(std::ostream& str, const ObjSerializer::IndexedVertex& 
 std::ostream& operator<<(std::ostream& str, const ObjSerializer::BrushObject& object) {
   str << "o entity" << object.entityNo << "_brush" << object.brushNo << "\n";
   for (const auto& face : object.faces) {
-    str << "usemtl " << face.textureName << "\n";
+    // RB: add textures/ for Doom 3 because the material name is the interface for the OBJ loader
+    str << "usemtl textures/" << face.textureName << "\n";
     str << "f";
     for (const auto& vertex : face.verts) {
       str << " " << vertex;
@@ -58,7 +59,8 @@ std::ostream& operator<<(std::ostream& str, const ObjSerializer::BrushObject& ob
 
 std::ostream& operator<<(std::ostream& str, const ObjSerializer::PatchObject& object) {
   str << "o entity" << object.entityNo << "_patch" << object.patchNo << "\n";
-  str << "usemtl " << object.textureName << "\n";
+  // RB: add textures/ for Doom 3 because the material name is the interface for the OBJ loader
+  str << "usemtl textures/" << object.textureName << "\n";
   for (const auto& quad : object.quads) {
     str << "f";
     for (const auto& vertex : quad.verts) {
@@ -116,7 +118,8 @@ static void writeMtlFile(
 
   const auto basePath = options.exportPath.deleteLastComponent();
   for (const auto& [textureName, texture] : usedTextures) {
-    str << "newmtl " << textureName << "\n";
+    // RB: add textures/ for Doom 3 because the material name is the interface for the OBJ loader
+    str << "newmtl textures/" << textureName << "\n";
     if (texture) {
       switch (options.mtlPathMode) {
         case ObjMtlPathMode::RelativeToGamePath:
@@ -138,9 +141,10 @@ static void writeMtlFile(
 static void writeVertices(std::ostream& str, const std::vector<vm::vec3>& vertices) {
   str << "# vertices\n";
   for (const vm::vec3& elem : vertices) {
-    // no idea why I have to switch Y and Z
+    // RB: use raw X, Y, Z without scaling or flipping for Doom 3 so we can reuse the .obj directly
+    // in the engine
     fmt::format_to(
-      std::ostreambuf_iterator<char>(str), "v {} {} {}\n", elem.x(), elem.z(), -elem.y());
+      std::ostreambuf_iterator<char>(str), "v {} {} {}\n", elem.x(), elem.y(), elem.z());
   }
 }
 
@@ -156,9 +160,10 @@ static void writeTexCoords(std::ostream& str, const std::vector<vm::vec2f>& texC
 static void writeNormals(std::ostream& str, const std::vector<vm::vec3>& normals) {
   str << "# normals\n";
   for (const vm::vec3& elem : normals) {
-    // no idea why I have to switch Y and Z
+    // RB: use raw X, Y, Z without scaling or flipping for Doom 3 so we can reuse the .obj directly
+    // in the engine
     fmt::format_to(
-      std::ostreambuf_iterator<char>(str), "vn {} {} {}\n", elem.x(), elem.z(), -elem.y());
+      std::ostreambuf_iterator<char>(str), "vn {} {} {}\n", elem.x(), elem.y(), elem.z());
   }
 }
 

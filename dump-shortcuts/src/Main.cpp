@@ -98,6 +98,34 @@ static QString toString(const QKeySequence& keySequence) {
   return result;
 }
 
+static QString toYamlString(const QKeySequence& keySequence) {
+  static const std::array<std::tuple<int, QString>, 4> Modifiers = {
+    std::make_tuple(static_cast<int>(Qt::CTRL), QString::fromLatin1("Ctrl")),
+    std::make_tuple(static_cast<int>(Qt::ALT), QString::fromLatin1("Alt")),
+    std::make_tuple(static_cast<int>(Qt::SHIFT), QString::fromLatin1("Shift")),
+    std::make_tuple(static_cast<int>(Qt::META), QString::fromLatin1("Meta")),
+  };
+
+  QString result;
+  // result += "{ ";
+
+  if (keySequence.count() > 0) {
+    const int keyWithModifier = keySequence[0];
+    const int key = keyWithModifier & ~(static_cast<int>(Qt::KeyboardModifierMask));
+
+    const QString keyPortableText = QKeySequence(key).toString(QKeySequence::PortableText);
+
+    for (const auto& [modifier, portableText] : Modifiers) {
+      if ((keyWithModifier & modifier) != 0) {
+        result += escapeString(portableText) + "+";
+      }
+    }
+    result += escapeString(keyPortableText);
+  }
+  // result += " }";
+  return result;
+}
+
 class PrintMenuVisitor : public TrenchBroom::View::MenuVisitor {
 private:
   QTextStream& m_out;
@@ -123,14 +151,50 @@ public:
   }
 };
 
-static void printMenuShortcuts(QTextStream& out) {
-  out << "const menu = {\n";
+class CarnacPrintMenuVisitor : public TrenchBroom::View::MenuVisitor {
+private:
+  QTextStream& m_out;
+  IO::Path m_path;
+
+public:
+  CarnacPrintMenuVisitor(QTextStream& out)
+    : m_out(out) {}
+
+  void visit(const Menu& menu) override {
+    m_path = m_path + IO::Path(menu.name());
+    menu.visitEntries(*this);
+    m_path = m_path.deleteLastComponent();
+  }
+
+  void visit(const MenuSeparatorItem&) override {}
+
+  void visit(const MenuActionItem& item) override {
+
+    if (item.action().keySequence().count() > 0) {
+      m_out << "    - name:      "
+            << QString::fromStdString(item.action().preferencePath().asString("/")) << "\n";
+      m_out << "      keys:\n      - " << toYamlString(item.action().keySequence()) << "\n\n";
+    }
+  }
+};
+
+static void printMenuShortcuts(QTextStream& out, bool yaml) {
+  if (!yaml) {
+    out << "const menu = {\n";
+  }
 
   const auto& actionManager = ActionManager::instance();
-  PrintMenuVisitor visitor(out);
-  actionManager.visitMainMenu(visitor);
+  if (yaml) {
+    CarnacPrintMenuVisitor visitor(out);
+    actionManager.visitMainMenu(visitor);
+  } else {
+    PrintMenuVisitor visitor(out);
+    actionManager.visitMainMenu(visitor);
+  }
 
-  out << "};\n";
+  if (!yaml) {
+    out << "};\n";
+  }
 }
 
 static void printActionShortcuts(QTextStream& out) {
@@ -172,14 +236,53 @@ static void printActionShortcuts(QTextStream& out) {
 
   out << "};\n";
 }
+
+static void printYamlActionShortcuts(QTextStream& out) {
+
+  auto printPref = [&out](const IO::Path& prefPath, const QKeySequence& keySequence) {
+    if (keySequence.count() > 0) {
+      out << "    - name:      " << QString::fromStdString(prefPath.asString("/")) << "\n";
+      out << "      keys:\n      - " << toYamlString(keySequence) << "\n\n";
+    }
+  };
+
+  class ToolbarVisitor : public MenuVisitor {
+  public:
+    std::vector<const Action*> toolbarActions;
+
+    void visit(const Menu& menu) override { menu.visitEntries(*this); }
+
+    void visit(const MenuSeparatorItem&) override {}
+
+    void visit(const MenuActionItem& item) override {
+      const Action* tAction = &item.action();
+      toolbarActions.push_back(tAction);
+    }
+  };
+
+  const auto& actionManager = ActionManager::instance();
+  ToolbarVisitor visitor;
+  actionManager.visitToolBarActions(visitor);
+  for (const Action* action : visitor.toolbarActions) {
+    printPref(action->preferencePath(), action->keySequence());
+  }
+  actionManager.visitMapViewActions([&printPref](const auto& action) {
+    printPref(action.preferencePath(), action.keySequence());
+  });
+
+  // some keys are just Preferences (e.g. WASD)
+  for (Preference<QKeySequence>* keyPref : Preferences::keyPreferences()) {
+    printPref(keyPref->path(), keyPref->defaultValue());
+  }
+}
 } // namespace View
 } // namespace TrenchBroom
 
 extern void qt_set_sequence_auto_mnemonic(bool b);
 
 int main(int argc, char* argv[]) {
-  if (argc != 2) {
-    std::cout << "Usage: dump-shortcuts <path-to-output-file>\n";
+  if (argc != 2 && argc != 3) {
+    std::cout << "Usage: dump-shortcuts <path-to-output-file> -carnac\n";
     return 1;
   }
 
@@ -203,6 +306,11 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
+  bool yaml = false;
+  if (argc == 3) {
+    yaml = true;
+  }
+
   QTextStream out(&file);
   out.setCodec("UTF-8");
 
@@ -216,9 +324,20 @@ int main(int argc, char* argv[]) {
   app.setOrganizationName("");
   app.setOrganizationDomain("io.github.trenchbroom");
 
-  TrenchBroom::View::printKeys(out);
-  TrenchBroom::View::printMenuShortcuts(out);
-  TrenchBroom::View::printActionShortcuts(out);
+  if (yaml) {
+    out << "group:          TrenchBroom\n";
+    out << "process:        trenchbroom\n\n";
+    out << "shortcuts:\n\n";
+  } else {
+    TrenchBroom::View::printKeys(out);
+  }
+
+  TrenchBroom::View::printMenuShortcuts(out, yaml);
+  if (yaml) {
+    TrenchBroom::View::printYamlActionShortcuts(out);
+  } else {
+    TrenchBroom::View::printActionShortcuts(out);
+  }
 
   out.flush();
   if (out.status() == QTextStream::Ok) {

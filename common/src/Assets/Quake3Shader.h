@@ -51,8 +51,7 @@ public:
     void reset();
   };
   // Doom 3
-  enum class StageLighting
-  {
+  enum class StageLighting {
     None,
     Diffuse,
     Normal,
@@ -74,8 +73,7 @@ bool operator!=(const Quake3ShaderStage& lhs, const Quake3ShaderStage& rhs);
 
 class Quake3Shader {
 public:
-  enum class Culling
-  {
+  enum class Culling {
     Front,
     Back,
     None

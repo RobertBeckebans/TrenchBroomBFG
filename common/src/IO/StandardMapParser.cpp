@@ -954,7 +954,9 @@ std::string StandardMapParser::parseDoom3TextureName(ParserStatus& /* status */)
   // HACK: remove textures/
   // would be better to avoid this and fix the texture lookup somewhere else
   Path texturePath(textureName);
-  texturePath = texturePath.deleteFirstComponent();
+  if (!texturePath.isEmpty() && texturePath.firstComponent().asString() == "textures") {
+    texturePath = texturePath.deleteFirstComponent();
+  }
 
   const auto shortName = texturePath.asString("/");
 

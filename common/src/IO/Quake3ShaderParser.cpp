@@ -188,7 +188,7 @@ void Quake3ShaderParser::parseStage(Assets::Quake3Shader& shader, ParserStatus& 
 
   auto& stage = shader.addStage();
   while (!token.hasType(Quake3ShaderToken::CBrace)) {
-    parseStageEntry(stage, status);
+    parseStageEntry(shader, stage, status);
     token = m_tokenizer.peekToken(Quake3ShaderToken::Eol);
   }
   expect(Quake3ShaderToken::CBrace, m_tokenizer.nextToken(Quake3ShaderToken::Eol));
@@ -210,13 +210,16 @@ void Quake3ShaderParser::parseBodyEntry(Assets::Quake3Shader& shader, ParserStat
   auto token = m_tokenizer.nextToken(Quake3ShaderToken::Eol);
   expect(Quake3ShaderToken::String, token);
   const auto key = token.data();
+
   if (kdl::ci::str_is_equal(key, "qer_editorimage")) {
     token = expect(Quake3ShaderToken::String, m_tokenizer.nextToken());
 
+#if 0
     // RB: FIXME remove
-    // if( token.data() == "textures/base_wall/lfwall13f3") {
-    //    shader.editorImage = Path(token.data());
-    //}
+    if (token.data() == "textures/enpro/encyl3") {
+      shader.editorImage = Path(token.data());
+    }
+#endif
     shader.editorImage = Path(token.data());
   } else if (kdl::ci::str_is_equal(key, "diffusemap")) {
     token = expect(Quake3ShaderToken::String, m_tokenizer.nextToken());
@@ -237,23 +240,33 @@ void Quake3ShaderParser::parseBodyEntry(Assets::Quake3Shader& shader, ParserStat
     } else if (value == "none" || value == "disable") {
       shader.culling = Assets::Quake3Shader::Culling::None;
     }
+    // RB: Doom 3 specific that don't require surfaceparm in front
+  } else if (kdl::ci::str_is_equal(key, "translucent")) {
+    shader.surfaceParms.insert("translucent");
+  } else if (kdl::ci::str_is_equal(key, "twosided")) {
+    // this doesn't look good at the moment
+    // shader.culling = Assets::Quake3Shader::Culling::None;
   } else {
     skipRemainderOfEntry();
   }
 }
 
-void Quake3ShaderParser::parseStageEntry(Assets::Quake3ShaderStage& stage, ParserStatus& status) {
+void Quake3ShaderParser::parseStageEntry(
+  Assets::Quake3Shader& shader, Assets::Quake3ShaderStage& stage, ParserStatus& status) {
   auto token = m_tokenizer.nextToken(Quake3ShaderToken::Eol);
   expect(
     Quake3ShaderToken::String | Quake3ShaderToken::Number,
     token); // RB: make this more flexible for Doom 3
   const auto key = token.data();
-  if (key == "map") {
-
+  if (kdl::ci::str_is_equal(key, "map")) {
     // RB: TODO check for heightmap(texture, float) and use texture
     token =
       expect(Quake3ShaderToken::String | Quake3ShaderToken::Variable, m_tokenizer.nextToken());
     stage.map = Path(token.data());
+  } else if (kdl::ci::str_is_equal(key, "alphaTest")) {
+    // skip expression, we only care that this is a masked / translucent material
+    shader.surfaceParms.insert("translucent");
+    skipRemainderOfEntry();
   } else if (key == "blendFunc") {
     const auto line = token.line();
 
@@ -295,7 +308,7 @@ void Quake3ShaderParser::parseStageEntry(Assets::Quake3ShaderStage& stage, Parse
         status.warn(line, param1Column, "Unknown blendFunc name '" + param1 + "'");
       }
     }
-  } else if (key == "blend") {
+  } else if (kdl::ci::str_is_equal(key, "blend")) {
     // RB: this is like blendFunc but with a , in between and allows to specify material properties
     // like normalmaps
     const auto line = token.line();

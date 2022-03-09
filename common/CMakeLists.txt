@@ -98,6 +98,7 @@ set(COMMON_SOURCE
         ${COMMON_SOURCE_DIR}/Model/BezierPatch.cpp
         ${COMMON_SOURCE_DIR}/Model/Brush.cpp
         ${COMMON_SOURCE_DIR}/Model/BrushBuilder.cpp
+        ${COMMON_SOURCE_DIR}/Model/BrushEntityWithoutModelKeyIssueGenerator.cpp
         ${COMMON_SOURCE_DIR}/Model/BrushError.cpp
         ${COMMON_SOURCE_DIR}/Model/BrushFace.cpp
         ${COMMON_SOURCE_DIR}/Model/BrushFaceAttributes.cpp
@@ -110,6 +111,7 @@ set(COMMON_SOURCE
         ${COMMON_SOURCE_DIR}/Model/CompilationConfig.cpp
         ${COMMON_SOURCE_DIR}/Model/CompilationProfile.cpp
         ${COMMON_SOURCE_DIR}/Model/CompilationTask.cpp
+        ${COMMON_SOURCE_DIR}/Model/ConflictingTargetnameIssueGenerator.cpp
         ${COMMON_SOURCE_DIR}/Model/EditorContext.cpp
         ${COMMON_SOURCE_DIR}/Model/EmptyBrushEntityIssueGenerator.cpp
         ${COMMON_SOURCE_DIR}/Model/EmptyGroupIssueGenerator.cpp
@@ -588,6 +590,7 @@ set(COMMON_HEADER
         ${COMMON_SOURCE_DIR}/Model/BezierPatch.h
         ${COMMON_SOURCE_DIR}/Model/Brush.h
         ${COMMON_SOURCE_DIR}/Model/BrushBuilder.h
+        ${COMMON_SOURCE_DIR}/Model/BrushEntityWithoutModelKeyIssueGenerator.h
         ${COMMON_SOURCE_DIR}/Model/BrushError.h
         ${COMMON_SOURCE_DIR}/Model/BrushFace.h
         ${COMMON_SOURCE_DIR}/Model/BrushFaceAttributes.h
@@ -601,6 +604,7 @@ set(COMMON_HEADER
         ${COMMON_SOURCE_DIR}/Model/CompilationConfig.h
         ${COMMON_SOURCE_DIR}/Model/CompilationProfile.h
         ${COMMON_SOURCE_DIR}/Model/CompilationTask.h
+        ${COMMON_SOURCE_DIR}/Model/ConflictingTargetnameIssueGenerator.h
         ${COMMON_SOURCE_DIR}/Model/EditorContext.h
         ${COMMON_SOURCE_DIR}/Model/EmptyBrushEntityIssueGenerator.h
         ${COMMON_SOURCE_DIR}/Model/EmptyGroupIssueGenerator.h

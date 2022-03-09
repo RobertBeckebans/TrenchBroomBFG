@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # keep the following in sync with our supplied clang-format binaries!
-OUR_CLANGFMT_VERSION=13.0.0
+OUR_CLANGFMT_VERSION=13.0.1
 
 print_usage () {
 	#echo "By default, this script only works on Linux i686 or amd64 (with our supplied clang-format binaries)"

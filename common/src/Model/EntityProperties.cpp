@@ -45,6 +45,7 @@ const std::string Mangle = "mangle";
 const std::string Target = "target";
 // RB: FIXME required for Doom 3 - change back to targetname so it doesn't break stuff
 const std::string Targetname = "name";
+const std::string Model = "model";
 const std::string Killtarget = "killtarget";
 const std::string ProtectedEntityProperties = "_tb_protected_properties";
 const std::string GroupType = "_tb_type";

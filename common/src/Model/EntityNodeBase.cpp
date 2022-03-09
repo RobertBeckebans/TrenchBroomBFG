@@ -23,6 +23,7 @@
 #include "Assets/PropertyDefinition.h"
 
 #include <kdl/collection_utils.h>
+#include <kdl/string_compare.h>
 #include <kdl/vector_utils.h>
 
 #include <string>
@@ -286,6 +287,129 @@ bool EntityNodeBase::hasMissingSources() const {
     m_linkSources.empty() && m_killSources.empty() &&
     m_entity.hasProperty(EntityPropertyKeys::Targetname));
 }
+
+// RB begin
+bool EntityNodeBase::hasMissingTargetname() const {
+
+  // name of this entity
+  const std::string* targetname = m_entity.property(EntityPropertyKeys::Targetname);
+  if (targetname != nullptr && !targetname->empty()) {
+    return false;
+  }
+
+  return true;
+}
+
+// RB: scan for other entities that have the same name key
+bool EntityNodeBase::hasConflictingTargetname() const {
+
+  // name of this entity
+  const std::string* targetname = m_entity.property(EntityPropertyKeys::Targetname);
+  if (targetname != nullptr && !targetname->empty()) {
+
+    std::vector<EntityNodeBase*> namedEntities;
+    findEntityNodesWithProperty(EntityPropertyKeys::Targetname, *targetname, namedEntities);
+    for (EntityNodeBase* ent : namedEntities) {
+      if (ent != this) {
+        const std::string* othername = ent->m_entity.property(EntityPropertyKeys::Targetname);
+        if (othername != nullptr && kdl::ci::str_is_equal(*othername, *targetname)) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+void EntityNodeBase::generateUniqueTargetname(std::string& result) const {
+
+  result = "<uniquenamefail>";
+
+  // classname of this entity
+  const std::string* classname = m_entity.property(EntityPropertyKeys::Classname);
+  if (classname != nullptr && !classname->empty()) {
+    if (*classname == "worldspawn") {
+      result = "worldspawn";
+    } else {
+
+      generateUniqueTargetnameForClassname(*classname, result);
+    }
+  }
+}
+
+void EntityNodeBase::generateUniqueTargetnameForClassname(
+  const std::string& classname, std::string& result) const {
+
+  result = "<uniquenamefail>";
+
+  // OPTIMIZE - this could be very slow with many unnamed entities of the same classname
+  for (int id = 0; id < 99999; id++) {
+
+    std::string candidate = classname;
+    candidate += "_";
+    candidate += std::to_string(id);
+
+    bool alreadyUsed = false;
+
+    std::vector<EntityNodeBase*> namedEntities;
+    findEntityNodesWithProperty(EntityPropertyKeys::Targetname, candidate, namedEntities);
+    for (EntityNodeBase* ent : namedEntities) {
+      if (ent != this) {
+        const std::string* othername = ent->m_entity.property(EntityPropertyKeys::Targetname);
+        if (othername != nullptr && kdl::ci::str_is_equal(*othername, candidate)) {
+          alreadyUsed = true;
+          break;
+        }
+      }
+    }
+
+    if (!alreadyUsed) {
+      result = candidate;
+      return;
+    }
+  }
+}
+
+bool EntityNodeBase::getTargetname(std::string& result) {
+
+  const std::string* targetname = m_entity.property(EntityPropertyKeys::Targetname);
+  if (targetname != nullptr && !targetname->empty()) {
+
+    result = *targetname;
+    return true;
+  }
+
+  return false;
+}
+
+bool EntityNodeBase::getModelname(std::string& result) {
+
+  const std::string* modelname = m_entity.property(EntityPropertyKeys::Model);
+  if (modelname != nullptr && !modelname->empty()) {
+
+    result = *modelname;
+    return true;
+  }
+
+  return false;
+}
+
+// brush entities need a "model" key that is the same as the "name" key
+bool EntityNodeBase::hasBadModelname() {
+
+  const std::string* targetname = m_entity.property(EntityPropertyKeys::Targetname);
+  if (targetname != nullptr && !targetname->empty()) {
+
+    const std::string* modelname = m_entity.property(EntityPropertyKeys::Model);
+    if (modelname != nullptr && !modelname->empty() && *targetname == *modelname) {
+      return false;
+    }
+  }
+
+  return true;
+}
+// RB end
 
 std::vector<std::string> EntityNodeBase::findMissingLinkTargets() const {
   std::vector<std::string> result;

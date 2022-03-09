@@ -74,7 +74,8 @@ private:
   void parseBody(Assets::Quake3Shader& shader, ParserStatus& status);
   void parseStage(Assets::Quake3Shader& shader, ParserStatus& status);
   void parseBodyEntry(Assets::Quake3Shader& shader, ParserStatus& status);
-  void parseStageEntry(Assets::Quake3ShaderStage& stage, ParserStatus& status);
+  void parseStageEntry(
+    Assets::Quake3Shader& shader, Assets::Quake3ShaderStage& stage, ParserStatus& status);
   void skipRemainderOfEntry();
 
 private:
