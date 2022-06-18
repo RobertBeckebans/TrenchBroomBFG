@@ -24,9 +24,8 @@
 #include <vecmath/vec.h>
 #include <vecmath/vec_io.h>
 
-#include <kdl/opt_utils.h>
+#include <kdl/reflection_impl.h>
 
-#include <ostream>
 #include <string>
 
 namespace TrenchBroom {
@@ -72,46 +71,7 @@ BrushFaceAttributes& BrushFaceAttributes::operator=(BrushFaceAttributes other) {
   return *this;
 }
 
-bool operator==(const BrushFaceAttributes& lhs, const BrushFaceAttributes& rhs) {
-  return (
-    lhs.m_textureName == rhs.m_textureName && lhs.m_offset == rhs.m_offset &&
-    lhs.m_scale == rhs.m_scale && lhs.m_rotation == rhs.m_rotation &&
-    lhs.m_surfaceContents == rhs.m_surfaceContents && lhs.m_surfaceFlags == rhs.m_surfaceFlags &&
-    lhs.m_surfaceValue == rhs.m_surfaceValue && lhs.m_color == rhs.m_color &&
-    lhs.m_bpMode == rhs.m_bpMode && lhs.m_bpMatrix == rhs.m_bpMatrix);
-}
-
-/*
-std::ostream& operator<<(std::ostream& str, const BrushFaceAttributes& attrs) {
-    str << "BrushFaceAttributes{"
-        << "textureName: " << attrs.m_textureName << ", "
-        << "offset: " << attrs.m_offset << ", "
-        << "scale: " << attrs.m_scale << ", "
-        << "rotation: " << attrs.m_rotation << ", "
-        << "surfaceContents: " << kdl::opt_to_string(attrs.m_surfaceContents) << ", "
-        << "surfaceFlags: " << kdl::opt_to_string(attrs.m_surfaceFlags) << ", "
-        << "surfaceValue: " << kdl::opt_to_string(attrs.m_surfaceValue) << ", "
-        << "color: " << kdl::opt_to_string(attrs.m_color) << "}";
-    return str;
-}
-*/
-
-bool operator!=(const BrushFaceAttributes& lhs, const BrushFaceAttributes& rhs) {
-  return !(lhs == rhs);
-}
-
-std::ostream& operator<<(std::ostream& str, const BrushFaceAttributes& attrs) {
-  str << "BrushFaceAttributes{"
-      << "textureName: " << attrs.m_textureName << ", "
-      << "offset: " << attrs.m_offset << ", "
-      << "scale: " << attrs.m_scale << ", "
-      << "rotation: " << attrs.m_rotation << ", "
-      << "surfaceContents: " << kdl::opt_to_string(attrs.m_surfaceContents) << ", "
-      << "surfaceFlags: " << kdl::opt_to_string(attrs.m_surfaceFlags) << ", "
-      << "surfaceValue: " << kdl::opt_to_string(attrs.m_surfaceValue) << ", "
-      << "color: " << kdl::opt_to_string(attrs.m_color) << "}";
-  return str;
-}
+kdl_reflect_impl(BrushFaceAttributes);
 
 void swap(BrushFaceAttributes& lhs, BrushFaceAttributes& rhs) {
   using std::swap;

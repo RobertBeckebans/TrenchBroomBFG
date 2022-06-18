@@ -164,11 +164,10 @@ void EntityNodeBase::updatePropertyIndex(
     const EntityProperty& oldProp = *oldIt;
     const EntityProperty& newProp = *newIt;
 
-    const int cmp = oldProp.compare(newProp);
-    if (cmp < 0) {
+    if (oldProp < newProp) {
       removePropertyFromIndex(oldProp.key(), oldProp.value());
       ++oldIt;
-    } else if (cmp > 0) {
+    } else if (oldProp > newProp) {
       addPropertyToIndex(newProp.key(), newProp.value());
       ++newIt;
     } else {
@@ -203,11 +202,10 @@ void EntityNodeBase::updateLinks(
     const EntityProperty& oldProp = *oldIt;
     const EntityProperty& newProp = *newIt;
 
-    const int cmp = oldProp.compare(newProp);
-    if (cmp < 0) {
+    if (oldProp < newProp) {
       removeLinks(oldProp.key(), oldProp.value());
       ++oldIt;
-    } else if (cmp > 0) {
+    } else if (oldProp > newProp) {
       addLinks(newProp.key(), newProp.value());
       ++newIt;
     } else {

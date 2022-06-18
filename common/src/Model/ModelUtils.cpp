@@ -149,6 +149,10 @@ GroupNode* findOutermostClosedGroup(Node* node) {
     .value_or(nullptr);
 }
 
+const GroupNode* findOutermostClosedGroup(const Node* node) {
+  return findOutermostClosedGroup(const_cast<Node*>(node));
+}
+
 std::vector<Model::GroupNode*> findLinkedGroups(
   Model::WorldNode& worldNode, const std::string& linkedGroupId) {
   auto result = std::vector<Model::GroupNode*>{};
@@ -491,6 +495,36 @@ std::vector<BrushFaceHandle> collectBrushFaces(const std::vector<Node*>& nodes) 
         const auto& brush = brushNode->brush();
         for (size_t i = 0; i < brush.faceCount(); ++i) {
           faces.emplace_back(brushNode, i);
+        }
+      },
+      [](PatchNode*) {}));
+  }
+  return faces;
+}
+
+std::vector<BrushFaceHandle> collectSelectedBrushFaces(const std::vector<Node*>& nodes) {
+  auto faces = std::vector<BrushFaceHandle>{};
+  for (auto* node : nodes) {
+    node->accept(kdl::overload(
+      [](auto&& thisLambda, WorldNode* world) {
+        world->visitChildren(thisLambda);
+      },
+      [](auto&& thisLambda, LayerNode* layer) {
+        layer->visitChildren(thisLambda);
+      },
+      [](auto&& thisLambda, GroupNode* group) {
+        group->visitChildren(thisLambda);
+      },
+      [](auto&& thisLambda, EntityNode* entity) {
+        entity->visitChildren(thisLambda);
+      },
+      [&](BrushNode* brushNode) {
+        const auto& brush = brushNode->brush();
+        for (size_t i = 0; i < brush.faceCount(); ++i) {
+          const auto& face = brush.face(i);
+          if (face.selected()) {
+            faces.emplace_back(brushNode, i);
+          }
         }
       },
       [](PatchNode*) {}));

@@ -67,7 +67,7 @@ set(COMMON_TEST_SOURCE
         "${COMMON_TEST_SOURCE_DIR}/Model/EntityNodeIndexTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/Model/EntityNodeLinkTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/Model/EntityNodeTest.cpp"
-        "${COMMON_TEST_SOURCE_DIR}/Model/EntityRotationPolicyTest.cpp"
+        "${COMMON_TEST_SOURCE_DIR}/Model/EntityRotationTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/Model/EntityTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/Model/GameFactoryTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/Model/GameTest.cpp"
@@ -108,12 +108,13 @@ set(COMMON_TEST_SOURCE
         "${COMMON_TEST_SOURCE_DIR}/View/MapDocumentTest.h"
         "${COMMON_TEST_SOURCE_DIR}/View/MoveHandleDragTrackerTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/View/RemoveNodesTest.cpp"
-        "${COMMON_TEST_SOURCE_DIR}/View/ResizeBrushesToolTest.cpp"
+        "${COMMON_TEST_SOURCE_DIR}/View/ExtrudeToolTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/View/ReparentNodesTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/View/RepeatableActionsTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/View/PickingTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/View/ScaleObjectsToolTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/View/SelectionTest.cpp"
+        "${COMMON_TEST_SOURCE_DIR}/View/SelectionToolTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/View/SetEntityPropertiesTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/View/SetLockStateTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/View/SetVisibilityStateTest.cpp"
@@ -158,7 +159,6 @@ set(TEST_FIXTURE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/fixture")
 
 add_library(common-test-utils OBJECT ${COMMON_TEST_UTILS_SOURCE})
 set_compiler_config(common-test-utils)
-target_compile_features(common-test-utils PRIVATE cxx_std_17)
 target_include_directories(common-test-utils PUBLIC ${COMMON_TEST_SOURCE_DIR})
 target_link_libraries(common-test-utils PRIVATE common Catch2::Catch2)
 
@@ -178,8 +178,12 @@ macro(configure_test_target TARGET)
     if(WIN32)
         # Copy DLLs to app directory
         add_custom_command(TARGET ${TARGET} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:freeimage>" "$<TARGET_FILE_DIR:${TARGET}>"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:freeimage::FreeImage>" "$<TARGET_FILE_DIR:${TARGET}>"
             COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:freetype>" "$<TARGET_FILE_DIR:${TARGET}>"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:tinyxml2::tinyxml2>" "$<TARGET_FILE_DIR:${TARGET}>"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:miniz::miniz>" "$<TARGET_FILE_DIR:${TARGET}>"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:fmt::fmt>" "$<TARGET_FILE_DIR:${TARGET}>"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:GLEW::GLEW>" "$<TARGET_FILE_DIR:${TARGET}>"
             COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:Qt5::Widgets>" "$<TARGET_FILE_DIR:${TARGET}>"
             COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:Qt5::Gui>" "$<TARGET_FILE_DIR:${TARGET}>"
             COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:Qt5::Core>" "$<TARGET_FILE_DIR:${TARGET}>"

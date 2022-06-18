@@ -21,7 +21,8 @@
 
 #include "EL/Expression.h"
 
-#include <iosfwd>
+#include <kdl/reflection_decl.h>
+
 #include <optional>
 #include <string>
 #include <vector>
@@ -79,12 +80,9 @@ extern const std::string LayerOmitFromExportValue;
 
 struct EntityPropertyConfig {
   std::optional<EL::Expression> defaultModelScaleExpression;
+
+  kdl_reflect_decl(EntityPropertyConfig, defaultModelScaleExpression);
 };
-
-bool operator==(const EntityPropertyConfig& lhs, const EntityPropertyConfig& rhs);
-bool operator!=(const EntityPropertyConfig& lhs, const EntityPropertyConfig& rhs);
-
-std::ostream& operator<<(std::ostream& lhs, const EntityPropertyConfig& rhs);
 
 bool isNumberedProperty(std::string_view prefix, std::string_view key);
 
@@ -97,7 +95,7 @@ public:
   EntityProperty();
   EntityProperty(const std::string& key, const std::string& value);
 
-  int compare(const EntityProperty& rhs) const;
+  kdl_reflect_decl(EntityProperty, m_key, m_value);
 
   const std::string& key() const;
   const std::string& value() const;
@@ -114,53 +112,18 @@ public:
   void setValue(const std::string& value);
 };
 
-bool operator<(const EntityProperty& lhs, const EntityProperty& rhs);
-bool operator<=(const EntityProperty& lhs, const EntityProperty& rhs);
-bool operator>(const EntityProperty& lhs, const EntityProperty& rhs);
-bool operator>=(const EntityProperty& lhs, const EntityProperty& rhs);
-bool operator==(const EntityProperty& lhs, const EntityProperty& rhs);
-bool operator!=(const EntityProperty& lhs, const EntityProperty& rhs);
-std::ostream& operator<<(std::ostream& str, const EntityProperty& prop);
-
 bool isLayer(const std::string& classname, const std::vector<EntityProperty>& properties);
 bool isGroup(const std::string& classname, const std::vector<EntityProperty>& properties);
 bool isWorldspawn(const std::string& classname, const std::vector<EntityProperty>& properties);
-const std::string& findProperty(
+
+std::vector<EntityProperty>::const_iterator findEntityProperty(
+  const std::vector<EntityProperty>& properties, const std::string& key);
+std::vector<EntityProperty>::iterator findEntityProperty(
+  std::vector<EntityProperty>& properties, const std::string& key);
+
+const std::string& findEntityPropertyOrDefault(
   const std::vector<EntityProperty>& properties, const std::string& key,
   const std::string& defaultValue = EntityPropertyValues::DefaultValue);
 
-class EntityProperties {
-private:
-  std::vector<EntityProperty> m_properties;
-
-public:
-  EntityProperties();
-  explicit EntityProperties(std::vector<EntityProperty> properties);
-
-  std::vector<EntityProperty> releaseProperties();
-  const std::vector<EntityProperty>& properties() const;
-  void setProperties(const std::vector<EntityProperty>& properties);
-
-  const EntityProperty& addOrUpdateProperty(const std::string& key, const std::string& value);
-  void renameProperty(const std::string& key, const std::string& newKey);
-  void removeProperty(const std::string& key);
-
-  bool hasProperty(const std::string& key) const;
-  bool hasProperty(const std::string& key, const std::string& value) const;
-  bool hasPropertyWithPrefix(const std::string& prefix, const std::string& value) const;
-  bool hasNumberedProperty(const std::string& prefix, const std::string& value) const;
-
-public:
-  std::vector<std::string> keys() const;
-  const std::string* properties(const std::string& key) const;
-
-  std::vector<EntityProperty> propertiesWithKey(const std::string& key) const;
-  std::vector<EntityProperty> propertiesWithPrefix(const std::string& prefix) const;
-  std::vector<EntityProperty> numberedProperties(const std::string& prefix) const;
-
-private:
-  std::vector<EntityProperty>::const_iterator findProperty(const std::string& key) const;
-  std::vector<EntityProperty>::iterator findProperty(const std::string& key);
-};
 } // namespace Model
 } // namespace TrenchBroom

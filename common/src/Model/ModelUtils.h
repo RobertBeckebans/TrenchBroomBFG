@@ -54,6 +54,7 @@ const GroupNode* findContainingLinkedGroup(const Node& node);
  * it if one is found, otherwise returns nullptr.
  */
 GroupNode* findOutermostClosedGroup(Node* node);
+const GroupNode* findOutermostClosedGroup(const Node* node);
 
 std::vector<Model::GroupNode*> findLinkedGroups(
   Model::WorldNode& worldNode, const std::string& linkedGroupId);
@@ -83,6 +84,7 @@ std::vector<Node*> collectSelectableNodes(
   const std::vector<Node*>& nodes, const EditorContext& editorContext);
 
 std::vector<BrushFaceHandle> collectBrushFaces(const std::vector<Node*>& nodes);
+std::vector<BrushFaceHandle> collectSelectedBrushFaces(const std::vector<Node*>& nodes);
 std::vector<BrushFaceHandle> collectSelectableBrushFaces(
   const std::vector<Node*>& nodes, const EditorContext& editorContext);
 
