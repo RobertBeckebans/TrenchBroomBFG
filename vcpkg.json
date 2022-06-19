@@ -29,6 +29,10 @@
     {
       "name": "tinyxml2",
       "version>=": "9.0.0"
+    },
+    {
+      "name": "assimp",
+      "version>=": "5.0.1#5"
     }
   ],
   "builtin-baseline": "a3df696929b28195b0d7a477ba6cd16dba48fa52"

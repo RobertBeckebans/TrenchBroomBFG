@@ -121,6 +121,7 @@ find_package(fmt CONFIG REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(miniz CONFIG REQUIRED)
 find_package(tinyxml2 CONFIG REQUIRED)
+find_package(assimp CONFIG REQUIRED)
 
 # Find Qt and OpenGL
 find_package(OpenGL REQUIRED)
