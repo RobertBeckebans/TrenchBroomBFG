@@ -24,6 +24,7 @@
 #include "IO/File.h"
 #include "IO/FileSystem.h"
 #include "IO/FreeImageTextureReader.h"
+#include "IO/SkinLoader.h" // load D3 materials
 #include "Logger.h"
 #include "Model/BrushFaceAttributes.h"
 #include "ReaderException.h"
@@ -250,6 +251,26 @@ void AssimpParser::processMesh(aiMesh* mesh) {
 }
 
 void AssimpParser::processMaterials(const aiScene* scene, Logger& logger) {
+#if 1
+  for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
+
+    // RB: valid material names in the .mtr files are the interface between Blender, TrenchBroom and
+    // the engine
+    std::string materialName = scene->mMaterials[i]->GetName() != aiString("")
+                                 ? scene->mMaterials[i]->GetName().C_Str()
+                                 : "nr. " + std::to_string(i + 1);
+
+    const auto shaderPath = Path(materialName).deleteExtension();
+
+    std::optional<Assets::Texture> material = IO::loadShader(shaderPath, m_fs, logger);
+    if (material) {
+      m_textures.push_back(std::move(*material));
+    } else {
+      material = IO::loadShader(Path(Model::BrushFaceAttributes::NoTextureName), m_fs, logger);
+      m_textures.push_back(std::move(*material));
+    }
+  }
+#else
   for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
     try {
       // Is there even a single diffuse texture? If not, fail and load fallback material.
@@ -318,6 +339,7 @@ void AssimpParser::processMaterials(const aiScene* scene, Logger& logger) {
         materialName + ": " + exception.what());
     }
   }
+#endif
 }
 
 std::vector<std::string> AssimpParser::get_supported_extensions() {
