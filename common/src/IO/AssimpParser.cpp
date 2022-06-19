@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2010-2021 Amara M. Kilic
+ Copyright (C) 2022 Amara M. Kilic
 
  This file is part of TrenchBroom.
 
@@ -53,9 +53,9 @@ private:
 
 protected:
   AssimpIOStream(const Path& path, const FileSystem& fs)
-    : m_fs(fs)
-    , m_file(m_fs.openFile(path))
-    , m_reader(m_file->reader()) {
+    : m_fs{fs}
+    , m_file{m_fs.openFile(path)}
+    , m_reader{m_file->reader()} {
     m_file = m_fs.openFile(path);
     m_reader = m_file->reader();
     if (m_file == nullptr) {
@@ -75,7 +75,7 @@ public:
   }
 
   size_t Write(const void* /* pvBuffer */, size_t /* pSize */, size_t /* pCount */) override {
-    return 0; // As far as I can see you can't write with File, and with a parser we never should
+    return 0; // As far as I can see you can't write with File, and with a parser we never should,
               // anyway.
   }
 
@@ -112,9 +112,9 @@ private:
 
 public:
   explicit AssimpIOSystem(const FileSystem& fs)
-    : m_fs(fs) {}
+    : m_fs{fs} {}
 
-  bool Exists(const char* pFile) const override { return m_fs.fileExists(Path(pFile)); }
+  bool Exists(const char* pFile) const override { return m_fs.fileExists(Path{pFile}); }
 
   char getOsSeparator() const override { return Path::separator()[0]; }
 
@@ -122,12 +122,13 @@ public:
 
   Assimp::IOStream* Open(const char* pFile, const char* pMode) override {
     if (pMode[0] != 'r') {
-      throw(ParserException("Assimp attempted to open a file not for reading."));
+      throw(ParserException{"Assimp attempted to open a file not for reading."});
     }
-    return new AssimpIOStream(Path(pFile), m_fs);
+    return new AssimpIOStream{Path(pFile), m_fs};
   }
 };
 
+#if 0
 // Copied from FreeImageTextureReader.cpp
 static Color getAverageColor(const Assets::TextureBuffer& buffer, const GLenum format) {
   ensure(format == GL_RGBA || format == GL_BGRA, "expected RGBA or BGRA");
@@ -137,13 +138,14 @@ static Color getAverageColor(const Assets::TextureBuffer& buffer, const GLenum f
 
   Color average;
   for (std::size_t i = 0; i < bufferSize; i += 4) {
-    average = average + Color(data[i], data[i + 1], data[i + 2], data[i + 3]);
+    average = average + Color{data[i], data[i + 1], data[i + 2], data[i + 3]};
   }
   const std::size_t numPixels = bufferSize / 4;
   average = average / static_cast<float>(numPixels);
 
   return average;
 }
+#endif
 
 std::unique_ptr<Assets::EntityModel> AssimpParser::doInitializeModel(TrenchBroom::Logger& logger) {
   // Create model.
@@ -161,12 +163,13 @@ std::unique_ptr<Assets::EntityModel> AssimpParser::doInitializeModel(TrenchBroom
   Assimp::Importer importer;
   importer.SetIOHandler(new AssimpIOSystem(m_fs));
   const aiScene* scene = importer.ReadFile(
-    (m_path).asString(), aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
-                           aiProcess_SortByPType | aiProcess_FlipWindingOrder | aiProcess_FlipUVs);
+    (m_path).asString(), aiProcess_Triangulate | aiProcess_FlipWindingOrder |
+                           aiProcess_MakeLeftHanded | aiProcess_JoinIdenticalVertices |
+                           aiProcess_SortByPType | aiProcess_FlipUVs);
 
   if (!scene) {
-    throw ParserException(
-      std::string("Assimp couldn't import the file: ") + importer.GetErrorString());
+    throw ParserException{
+      std::string{"Assimp couldn't import the file: "} + importer.GetErrorString()};
   }
 
   // Load materials as textures.
@@ -174,13 +177,17 @@ std::unique_ptr<Assets::EntityModel> AssimpParser::doInitializeModel(TrenchBroom
 
   surface.setSkins(std::move(m_textures));
 
-  processNode(scene->mRootNode, scene);
+  // Assimp files import as y-up. Use this transform to change the model to z-up.
+  aiMatrix4x4 axisTransform{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                            0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+
+  processNode(scene->mRootNode, scene, scene->mRootNode->mTransformation, axisTransform);
 
   // Build bounds.
-  auto bounds = vm::bbox3f::builder();
+  auto bounds = vm::bbox3f::builder{};
   if (m_positions.empty()) {
     // Passing empty bounds as bbox crashes the program, don't let it happen.
-    throw ParserException("Model has no vertices. (So no valid bounding box.)");
+    throw ParserException{("Model has no vertices. (So no valid bounding box.)")};
   } else {
     bounds.add(std::begin(m_positions), std::end(m_positions));
   }
@@ -196,8 +203,8 @@ std::unique_ptr<Assets::EntityModel> AssimpParser::doInitializeModel(TrenchBroom
 
   // Part 2: Building
   auto& frame = model->loadFrame(0, m_path.asString(), bounds.bounds());
-  Renderer::TexturedIndexRangeMapBuilder<Assets::EntityModelVertex::Type> builder(
-    totalVertexCount, size);
+  Renderer::TexturedIndexRangeMapBuilder<Assets::EntityModelVertex::Type> builder{
+    totalVertexCount, size};
 
   for (const AssimpFace& face : m_faces) {
     std::vector<Assets::EntityModelVertex> entityVertices;
@@ -215,29 +222,34 @@ AssimpParser::AssimpParser(Path path, const FileSystem& fs)
   : m_path(std::move(path))
   , m_fs(fs) {}
 
-void AssimpParser::processNode(aiNode* node, const aiScene* scene) {
+void AssimpParser::processNode(
+  aiNode* node, const aiScene* scene, aiMatrix4x4 transform, aiMatrix4x4& axisTransform) {
   for (unsigned int i = 0; i < node->mNumMeshes; i++) {
     aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-    processMesh(mesh);
+    processMesh(mesh, transform, axisTransform);
   }
   for (unsigned int i = 0; i < node->mNumChildren; i++) {
-    processNode(node->mChildren[i], scene);
+    processNode(
+      node->mChildren[i], scene, transform * node->mChildren[i]->mTransformation, axisTransform);
   }
 }
 
-void AssimpParser::processMesh(aiMesh* mesh) {
+void AssimpParser::processMesh(aiMesh* mesh, aiMatrix4x4& transform, aiMatrix4x4& axisTransform) {
   // Meshes have been sorted by primitive type, so we know for sure we'll ONLY get triangles in a
   // single mesh.
   if (mesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE) {
     size_t offset = m_vertices.size();
     // Add all the vertices of the mesh.
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
-      vm::vec2f texcoords(0.0f, 0.0f);
+      vm::vec2f texcoords{0.0f, 0.0f};
       if (mesh->mTextureCoords[0]) {
         texcoords = {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
       }
       m_vertices.emplace_back(m_positions.size(), texcoords);
-      m_positions.emplace_back(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+      aiVector3t meshVertices = mesh->mVertices[i];
+      meshVertices *= transform;
+      meshVertices *= axisTransform;
+      m_positions.emplace_back(meshVertices.x, meshVertices.y, meshVertices.z);
     }
 
     for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
@@ -275,7 +287,7 @@ void AssimpParser::processMaterials(const aiScene* scene, Logger& logger) {
     try {
       // Is there even a single diffuse texture? If not, fail and load fallback material.
       if (scene->mMaterials[i]->GetTextureCount(aiTextureType_DIFFUSE) == 0) {
-        throw Exception(std::string("Material does not contain a texture."));
+        throw Exception{(std::string("Material does not contain a texture."))};
       }
       aiString path;
       scene->mMaterials[i]->GetTexture(aiTextureType_DIFFUSE, 0, &path);
@@ -283,8 +295,8 @@ void AssimpParser::processMaterials(const aiScene* scene, Logger& logger) {
       const aiTexture* texture = scene->GetEmbeddedTexture(path.C_Str());
       if (!texture) {
         // The texture is not embedded. Load it using the file system.
-        IO::FreeImageTextureReader imageReader(
-          IO::TextureReader::StaticNameStrategy(""), m_fs, logger);
+        IO::FreeImageTextureReader imageReader{
+          IO::TextureReader::StaticNameStrategy(""), m_fs, logger};
         const Path filePath = m_path.deleteLastComponent() + Path(texturePath);
         auto file = m_fs.openFile(filePath);
         Assets::Texture textureAsset = imageReader.readTexture(file);
@@ -293,13 +305,13 @@ void AssimpParser::processMaterials(const aiScene* scene, Logger& logger) {
       }
       if (texture->mHeight != 0) {
         // The texture is uncompressed, load it directly.
-        Assets::TextureBuffer buffer(texture->mWidth * texture->mHeight * sizeof(aiTexel));
+        Assets::TextureBuffer buffer{(texture->mWidth * texture->mHeight * sizeof(aiTexel))};
         std::memcpy(
           buffer.data(), texture->pcData, texture->mWidth * texture->mHeight * sizeof(aiTexel));
         Color averageColor = getAverageColor(buffer, GL_BGRA);
-        Assets::Texture textureAsset = Assets::Texture(
-          texturePath, texture->mWidth, texture->mHeight, averageColor, std::move(buffer), GL_BGRA,
-          Assets::TextureType::Masked);
+        Assets::Texture textureAsset = Assets::Texture{
+          texturePath,       texture->mWidth, texture->mHeight,           averageColor,
+          std::move(buffer), GL_BGRA,         Assets::TextureType::Masked};
         m_textures.push_back(std::move(textureAsset));
         continue;
       }
@@ -313,14 +325,14 @@ void AssimpParser::processMaterials(const aiScene* scene, Logger& logger) {
     } catch (Exception& exception) {
       // Load fallback material in case we get any error.
       std::vector<Path> texturePaths = {
-        Path("textures") + Path(Model::BrushFaceAttributes::NoTextureName).addExtension("png"),
-        Path("textures") + Path(Model::BrushFaceAttributes::NoTextureName).addExtension("jpg"),
-        Path(Model::BrushFaceAttributes::NoTextureName).addExtension("png"),
-        Path(Model::BrushFaceAttributes::NoTextureName).addExtension("jpg"),
+        Path{"textures"} + Path{Model::BrushFaceAttributes::NoTextureName}.addExtension("png"),
+        Path{"textures"} + Path{Model::BrushFaceAttributes::NoTextureName}.addExtension("jpg"),
+        Path{Model::BrushFaceAttributes::NoTextureName}.addExtension("png"),
+        Path{Model::BrushFaceAttributes::NoTextureName}.addExtension("jpg"),
       };
 
-      IO::FreeImageTextureReader imageReader(
-        IO::TextureReader::StaticNameStrategy(""), m_fs, logger);
+      IO::FreeImageTextureReader imageReader{
+        IO::TextureReader::StaticNameStrategy(""), m_fs, logger};
       for (const auto& texturePath : texturePaths) {
         try {
           auto file = m_fs.openFile(texturePath);
@@ -335,7 +347,7 @@ void AssimpParser::processMaterials(const aiScene* scene, Logger& logger) {
                                    ? scene->mMaterials[i]->GetName().C_Str()
                                    : "nr. " + std::to_string(i + 1);
       logger.error(
-        std::string("Model ") + m_path.asString() + ": Loading fallback material for material " +
+        std::string{"Model "} + m_path.asString() + ": Loading fallback material for material " +
         materialName + ": " + exception.what());
     }
   }
@@ -351,7 +363,7 @@ std::vector<std::string> AssimpParser::get_supported_extensions() {
     "smd",  "vta", // .smd and .vta are uncompiled Source engine models.
     "mdc",  "x",        "q30",          "qrs",      "ter",       "raw",  "ac",
     "ac3d", "stl",      "dxf",          "irrmesh",  "irr",       "off",
-    "obj", // .obj files will only be parsed by Assimp if obj_neverball isn't enabled.
+    "obj", // .obj files will only be parsed by Assimp if the neverball importer isn't enabled.
     "mdl", // 3D GameStudio Model. It requires a palette file to load.
     "hmp",  "mesh.xml", "skeleton.xml", "material", "ogex",      "ms3d", "lxo",
     "csm",  "ply",      "cob",          "scn",      "xgl"};
