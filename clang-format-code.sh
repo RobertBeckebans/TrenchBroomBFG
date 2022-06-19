@@ -38,4 +38,4 @@ if [ "$CLANGFMT_VERSION" != "$OUR_CLANGFMT_VERSION" ]; then
 fi
 
 #find . -regex ".*\.\(c\|cpp\|cc\|cxx\|h\|hpp\)" ! -path "./lib/*" ! -exec $CLANGFMT_BIN -i {} \;
-find . -regex ".*\.\(c\|cpp\|cc\|cxx\|h\|hpp\)" ! -path "./lib/*" ! -path "./vcpkg/*" ! -print0 | xargs -0 -P 16 $CLANGFMT_BIN -i
+find . -regex ".*\.\(c\|cpp\|cc\|cxx\|h\|hpp\)" ! -path "./lib/*" ! -path "./vcpkg/*" ! -path "./build/*" ! -print0 | xargs -0 -P 16 $CLANGFMT_BIN -i
