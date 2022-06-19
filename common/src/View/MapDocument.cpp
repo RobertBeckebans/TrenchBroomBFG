@@ -3838,7 +3838,7 @@ void MapDocument::fixBadEntityNamesAndModels() {
         entityNode->generateUniqueTargetname(uniqueName);
 
         deselectAll();
-        select(entityNode);
+        selectNodes({entityNode});
 
         setProperty(Model::EntityPropertyKeys::Targetname, uniqueName);
 

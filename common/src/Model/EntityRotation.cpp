@@ -107,7 +107,7 @@ EntityRotationInfo entityRotationInfo(const Entity& entity) {
   // default
 
   if (entity.hasProperty(EntityPropertyKeys::Angle)) {
-    type = RotationType::AngleUpDown;
+    type = EntityRotationType::AngleUpDown;
     propertyKey = EntityPropertyKeys::Angle;
   } else {
     type = eulerType;

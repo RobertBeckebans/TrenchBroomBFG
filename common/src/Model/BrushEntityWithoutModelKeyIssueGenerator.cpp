@@ -71,7 +71,7 @@ private:
     // the removeProperty call will correctly affect worldspawn either way.
 
     facade->deselectAll();
-    facade->select(issue->node());
+    facade->selectNodes({issue->node()});
 
     const EntityNodeBase* propertyNode = static_cast<EntityNodeBase*>(issue->node());
 
