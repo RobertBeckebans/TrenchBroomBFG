@@ -191,7 +191,7 @@ void EntityBrowserView::addEntityToLayout(
     });
 
     const auto* frame = m_entityModelManager.frame(spec);
-    auto modelScale = vm::vec3f{Assets::safeGetModelScale(
+    const auto modelScale = vm::vec3f{Assets::safeGetModelScale(
       definition->modelDefinition(), EL::NullVariableStore{}, m_defaultScaleModelExpression)};
 
     Renderer::TexturedRenderer* modelRenderer = nullptr;
@@ -212,11 +212,6 @@ void EntityBrowserView::addEntityToLayout(
       const auto transform = vm::translation_matrix(-center) * vm::rotation_matrix(m_rotation) *
                              vm::translation_matrix(center);
       rotatedBounds = rotatedBounds.transform(transform);
-    }
-
-    // RB: skip model scale expressions for sprite icons
-    if (modelOrientation == Assets::Orientation::ViewPlaneParallel) {
-      modelScale = vm::vec3f(0.5f, 0.5f, 0.5f);
     }
 
     const auto boundsSize = rotatedBounds.size();
