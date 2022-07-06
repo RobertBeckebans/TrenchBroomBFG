@@ -299,12 +299,12 @@ std::optional<Assets::Texture> loadFallbackTexture(const FileSystem& fs, Logger&
 
 void AssimpParser::processMaterials(const aiScene& scene, Logger& logger) {
 #if 1
-  for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
+  for (unsigned int i = 0; i < scene.mNumMaterials; i++) {
 
     // RB: valid material names in the .mtr files are the interface between Blender, TrenchBroom and
     // the engine
-    std::string materialName = scene->mMaterials[i]->GetName() != aiString("")
-                                 ? scene->mMaterials[i]->GetName().C_Str()
+    std::string materialName = scene.mMaterials[i]->GetName() != aiString("")
+                                 ? scene.mMaterials[i]->GetName().C_Str()
                                  : "nr. " + std::to_string(i + 1);
 
     const auto shaderPath = Path(materialName).deleteExtension();

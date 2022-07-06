@@ -547,11 +547,6 @@ std::unique_ptr<Assets::EntityModel> GameImpl::doInitializeModel(
       kdl::vec_contains(supported, "assimp")) {
       IO::AssimpParser parser(path, m_fs);
       return parser.initializeModel(logger);
-    } else if (
-      kdl::vec_contains(IO::AssimpParser::get_supported_extensions(), extension) &&
-      kdl::vec_contains(supported, "assimp")) {
-      IO::AssimpParser parser(path, m_fs);
-      return parser.initializeModel(logger);
     } else {
       throw GameException("Unsupported model format '" + path.asString() + "'");
     }
