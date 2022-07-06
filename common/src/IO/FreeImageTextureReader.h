@@ -19,12 +19,19 @@
 
 #pragma once
 
+#include "Color.h"
 #include "IO/TextureReader.h"
+#include "Renderer/GL.h"
 
+#include <cstdint>
 #include <memory>
 
 namespace TrenchBroom {
 class Logger;
+
+namespace Assets {
+class TextureBuffer;
+}
 
 namespace IO {
 class File;
@@ -32,6 +39,11 @@ class FileSystem;
 
 class FreeImageTextureReader : public TextureReader {
 public:
+  static Color getAverageColor(const Assets::TextureBuffer& buffer, GLenum format);
+
+  static Assets::Texture readTextureFromMemory(
+    const std::string& name, const uint8_t* begin, size_t size);
+
   explicit FreeImageTextureReader(
     const NameStrategy& nameStrategy, const FileSystem& fs, Logger& logger);
   // Used by Assimp parser.

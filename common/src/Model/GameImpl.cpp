@@ -543,6 +543,11 @@ std::unique_ptr<Assets::EntityModel> GameImpl::doInitializeModel(
       IO::SprParser parser{modelName, std::begin(reader), std::end(reader), palette};
       return parser.initializeModel(logger);
     } else if (
+      kdl::vec_contains(IO::AssimpParser::supportedExtensions(), extension) &&
+      kdl::vec_contains(supported, "assimp")) {
+      IO::AssimpParser parser(path, m_fs);
+      return parser.initializeModel(logger);
+    } else if (
       kdl::vec_contains(IO::AssimpParser::get_supported_extensions(), extension) &&
       kdl::vec_contains(supported, "assimp")) {
       IO::AssimpParser parser(path, m_fs);

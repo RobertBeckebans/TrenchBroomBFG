@@ -1,5 +1,6 @@
 /*
  Copyright (C) 2022 Amara M. Kilic
+ Copyright (C) 2022 Kristian Duske
 
  This file is part of TrenchBroom.
 
@@ -20,11 +21,12 @@
 #pragma once
 
 #include "IO/EntityModelParser.h"
-#include "Path.h"
+#include "IO/Path.h"
 
-#include <assimp/matrix4x4.h>
 #include <vecmath/forward.h>
 #include <vecmath/vec.h>
+
+#include <assimp/matrix4x4.h>
 
 struct aiNode;
 struct aiScene;
@@ -67,14 +69,16 @@ private:
 
 public:
   AssimpParser(Path path, const FileSystem& fs);
-  static std::vector<std::string> get_supported_extensions();
+  static std::vector<std::string> supportedExtensions();
 
 private:
   std::unique_ptr<Assets::EntityModel> doInitializeModel(Logger& logger) override;
   void processNode(
-    aiNode* node, const aiScene* scene, aiMatrix4x4 transform, aiMatrix4x4& axisTransform);
-  void processMesh(aiMesh* mesh, aiMatrix4x4& transform, aiMatrix4x4& axisTransform);
-  void processMaterials(const aiScene* scene, Logger& logger);
+    const aiNode& node, const aiScene& scene, const aiMatrix4x4& transform,
+    const aiMatrix4x4& axisTransform);
+  void processMesh(
+    const aiMesh& mesh, const aiMatrix4x4& transform, const aiMatrix4x4& axisTransform);
+  void processMaterials(const aiScene& scene, Logger& logger);
 };
 } // namespace IO
 } // namespace TrenchBroom
