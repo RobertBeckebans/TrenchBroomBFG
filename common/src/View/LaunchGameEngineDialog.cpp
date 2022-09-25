@@ -258,7 +258,7 @@ void LaunchGameEngineDialog::launchEngine() {
     accept();
   } catch (const Exception& e) {
     const auto message = kdl::str_to_string("Could not launch game engine: ", e.what());
-    QMessageBox::critical(this, "TrenchBroom", QString::fromStdString(message), QMessageBox::Ok);
+    QMessageBox::critical(this, "TrenchBroomBFG", QString::fromStdString(message), QMessageBox::Ok);
   }
 }
 

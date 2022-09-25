@@ -2092,7 +2092,7 @@ void ActionManager::createHelpMenu() {
       return true;
     }));
   helpMenu.addItem(createMenuAction(
-    IO::Path("Menu/File/About TrenchBroom"), QObject::tr("About TrenchBroom"), 0,
+    IO::Path("Menu/File/About TrenchBroomBFG"), QObject::tr("About TrenchBroomBFG"), 0,
     [](ActionExecutionContext&) {
       auto& app = TrenchBroomApp::instance();
       app.showAboutDialog();

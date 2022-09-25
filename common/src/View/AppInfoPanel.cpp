@@ -43,7 +43,7 @@ void AppInfoPanel::createGui() {
   QLabel* appIcon = new QLabel{};
   appIcon->setPixmap(appIconImage);
 
-  QLabel* appName = new QLabel{tr("TrenchBroom")};
+  QLabel* appName = new QLabel{tr("TrenchBroomBFG")};
   makeHeader(appName);
 
   BorderLine* appLine = new BorderLine{BorderLine::Direction::Horizontal};
@@ -85,7 +85,7 @@ void AppInfoPanel::createGui() {
 
 void AppInfoPanel::versionInfoClicked() {
   QClipboard* clipboard = QApplication::clipboard();
-  const QString str = tr("TrenchBroom ") % getBuildVersion() % tr(" Build ") % getBuildIdStr();
+  const QString str = tr("TrenchBroomBFG ") % getBuildVersion() % tr(" Build ") % getBuildIdStr();
   clipboard->setText(str);
 }
 } // namespace TrenchBroom::View

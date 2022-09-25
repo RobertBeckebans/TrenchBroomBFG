@@ -232,7 +232,7 @@ QAction* MapFrame::findAction(const IO::Path& path) {
 
 void MapFrame::updateTitle() {
   setWindowModified(m_document->modified());
-  setWindowTitle(QString::fromStdString(m_document->filename()) + QString("[*] - TrenchBroom"));
+  setWindowTitle(QString::fromStdString(m_document->filename()) + QString("[*] - TrenchBroomBFG"));
   setWindowFilePath(IO::pathAsQString(m_document->path()));
 }
 
@@ -323,7 +323,7 @@ void MapFrame::updateRecentDocumentsMenu() {
 
 void MapFrame::createGui() {
   setWindowIconTB(this);
-  setWindowTitle("TrenchBroom");
+  setWindowTitle("TrenchBroomBFG");
 
   m_hSplitter = new Splitter(Qt::Horizontal);
   m_hSplitter->setChildrenCollapsible(false);
@@ -992,7 +992,7 @@ bool MapFrame::confirmOrDiscardChanges() {
   if (!m_document->modified())
     return true;
   const QMessageBox::StandardButton result = QMessageBox::question(
-    this, "TrenchBroom",
+    this, "TrenchBroomBFG",
     QString::fromStdString(
       m_document->filename() + " has been modified. Do you want to save the changes?"),
     QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
@@ -1023,7 +1023,7 @@ bool MapFrame::confirmRevertDocument() {
   }
 
   QMessageBox messageBox(this);
-  messageBox.setWindowTitle("TrenchBroom");
+  messageBox.setWindowTitle("TrenchBroomBFG");
   messageBox.setIcon(QMessageBox::Question);
   messageBox.setText(tr("Revert %1 to %2?")
                        .arg(QString::fromStdString(m_document->filename()))

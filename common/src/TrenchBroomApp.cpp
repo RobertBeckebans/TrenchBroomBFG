@@ -113,11 +113,11 @@ TrenchBroomApp::TrenchBroomApp(int& argc, char** argv)
   // platforms locale
   std::setlocale(LC_NUMERIC, "C");
 
-  setApplicationName("TrenchBroom");
+  setApplicationName("TrenchBroomBFG");
   // Needs to be "" otherwise Qt adds this to the paths returned by QStandardPaths
   // which would cause preferences to move from where they were with wx
   setOrganizationName("");
-  setOrganizationDomain("io.github.trenchbroom");
+  setOrganizationDomain("io.github.trenchbroombfg");
 
   if (!initializeGameFactory()) {
     QCoreApplication::exit(1);
@@ -323,7 +323,7 @@ bool TrenchBroomApp::openDocument(const IO::Path& path) {
     if (frame != nullptr) {
       frame->close();
     }
-    QMessageBox::critical(nullptr, "TrenchBroom", e.what(), QMessageBox::Ok);
+    QMessageBox::critical(nullptr, "TrenchBroomBFG", e.what(), QMessageBox::Ok);
     return false;
   } catch (const RecoverableException& e) {
     if (frame != nullptr) {
@@ -336,7 +336,7 @@ bool TrenchBroomApp::openDocument(const IO::Path& path) {
     if (frame != nullptr) {
       frame->close();
     }
-    QMessageBox::critical(nullptr, "TrenchBroom", e.what(), QMessageBox::Ok);
+    QMessageBox::critical(nullptr, "TrenchBroomBFG", e.what(), QMessageBox::Ok);
     return false;
   } catch (...) {
     if (frame != nullptr) {
@@ -359,7 +359,7 @@ bool TrenchBroomApp::recoverFromException(
     message << e.what() << "\n\n" << e.query();
 
     const auto result = QMessageBox::question(
-      nullptr, QString("TrenchBroom"), QString::fromStdString(message.str()),
+      nullptr, QString("TrenchBroomBFG"), QString::fromStdString(message.str()),
       QMessageBox::Yes | QMessageBox::No);
     if (result == QMessageBox::Yes) {
       const kdl::set_temp setRecovering(recovering);
@@ -369,7 +369,7 @@ bool TrenchBroomApp::recoverFromException(
       return false;
     }
   } else {
-    QMessageBox::critical(nullptr, "TrenchBroom", e.what(), QMessageBox::Ok);
+    QMessageBox::critical(nullptr, "TrenchBroomBFG", e.what(), QMessageBox::Ok);
     return false;
   }
 }
@@ -420,7 +420,7 @@ bool TrenchBroomApp::initializeGameFactory() {
     }
 
     QMessageBox::critical(
-      nullptr, "TrenchBroom", QString::fromStdString(str.str()), QMessageBox::Ok);
+      nullptr, "TrenchBroomBFG", QString::fromStdString(str.str()), QMessageBox::Ok);
   }
   return true;
 }
@@ -432,8 +432,8 @@ static std::string makeCrashReport(const std::string& stacktrace, const std::str
   ss << "GL_VENDOR:\t" << GLContextManager::GLVendor << std::endl;
   ss << "GL_RENDERER:\t" << GLContextManager::GLRenderer << std::endl;
   ss << "GL_VERSION:\t" << GLContextManager::GLVersion << std::endl;
-  ss << "TrenchBroom Version:\t" << getBuildVersion().toStdString() << std::endl;
-  ss << "TrenchBroom Build:\t" << getBuildIdStr().toStdString() << std::endl;
+  ss << "TrenchBroomBFG Version:\t" << getBuildVersion().toStdString() << std::endl;
+  ss << "TrenchBroomBFG Build:\t" << getBuildIdStr().toStdString() << std::endl;
   ss << "Reason:\t" << reason << std::endl;
   ss << "Stack trace:" << std::endl;
   ss << stacktrace << std::endl;

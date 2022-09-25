@@ -350,14 +350,14 @@ void AppPreferenceManager::showErrorAndDisableFileReadWrite(
   m_fileReadWriteDisabled = true;
 
   const QString message = tr("%1\n\n"
-                             "%2\n\nPlease correct the problem (%3) and restart TrenchBroom.\n"
+                             "%2\n\nPlease correct the problem (%3) and restart TrenchBroomBFG.\n"
                              "Further settings changes will not be saved this session.")
                             .arg(reason)
                             .arg(m_preferencesFilePath)
                             .arg(suggestion);
 
   auto dialog =
-    QMessageBox(QMessageBox::Icon::Critical, tr("TrenchBroom"), message, QMessageBox::Ok);
+    QMessageBox(QMessageBox::Icon::Critical, tr("TrenchBroomBFG"), message, QMessageBox::Ok);
   dialog.exec();
 }
 
@@ -586,7 +586,7 @@ std::map<IO::Path, QJsonValue> readV1Settings() {
     QDir::homePath() % QLatin1String("/.TrenchBroom/.preferences");
 
   [[maybe_unused]] const QString macOSPath = QStandardPaths::locate(
-    QStandardPaths::ConfigLocation, QString::fromLocal8Bit("TrenchBroom Preferences"),
+    QStandardPaths::ConfigLocation, QString::fromLocal8Bit("TrenchBroomBFG Preferences"),
     QStandardPaths::LocateOption::LocateFile);
 
 #if defined(Q_OS_WIN)

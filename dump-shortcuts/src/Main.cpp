@@ -318,7 +318,7 @@ int main(int argc, char* argv[]) {
 
   // QKeySequence requires that an application instance is created!
   QApplication app(argc, argv);
-  app.setApplicationName("TrenchBroom");
+  app.setApplicationName("TrenchBroomBFG");
   // Needs to be "" otherwise Qt adds this to the paths returned by QStandardPaths
   // which would cause preferences to move from where they were with wx
   app.setOrganizationName("");
