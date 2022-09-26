@@ -148,7 +148,7 @@ std::unique_ptr<Assets::EntityModel> AssimpParser::doInitializeModel(TrenchBroom
 
   const auto* scene = importer.ReadFile(
     m_path.asString(), aiProcess_Triangulate | aiProcess_FlipWindingOrder |
-                         /*aiProcess_MakeLeftHanded |*/ aiProcess_JoinIdenticalVertices |
+                         aiProcess_MakeLeftHanded | aiProcess_JoinIdenticalVertices |
                          aiProcess_SortByPType | aiProcess_FlipUVs);
 
   if (!scene) {
@@ -235,7 +235,7 @@ void AssimpParser::processMesh(
 
       auto meshVertices = mesh.mVertices[i];
       meshVertices *= transform;
-      // meshVertices *= axisTransform; // RB: skip Y-Up option from Blender
+      meshVertices *= axisTransform;
       m_positions.emplace_back(meshVertices.x, meshVertices.y, meshVertices.z);
     }
 
