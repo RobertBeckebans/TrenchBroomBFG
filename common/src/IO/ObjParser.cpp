@@ -285,11 +285,14 @@ std::optional<Assets::Texture> NvObjParser::loadFallbackMaterial(Logger& logger)
 
 // -- Doom 3 --
 
-Doom3ObjParser::Doom3ObjParser(
-  const Path& path, const char* begin, const char* end, const FileSystem& fs)
-  : ObjParser(path.lastComponent().asString(), begin, end)
+Doom3ObjParser::Doom3ObjParser(const Path& path, const std::string_view text, const FileSystem& fs)
+  : ObjParser(path.lastComponent().asString(), text)
   , m_path(path)
   , m_fs(fs) {}
+
+bool Doom3ObjParser::canParse(const Path& path) {
+  return kdl::str_to_lower(path.extension()) == "obj";
+}
 
 bool Doom3ObjParser::transformObjCoordinateSet(
   std::vector<vm::vec3f>&, std::vector<vm::vec2f>& texcoords) {

@@ -126,7 +126,11 @@ public:
    * @param end the end of the text
    * @param fs the filesystem used to lookup textures
    */
-  Doom3ObjParser(const Path& path, const char* begin, const char* end, const FileSystem& fs);
+  Doom3ObjParser(const Path& path, std::string_view text, const FileSystem& fs);
+
+  static bool canParse(const Path& path);
+
+private:
   bool transformObjCoordinateSet(
     std::vector<vm::vec3f>& positions, std::vector<vm::vec2f>& texcoords) override;
   std::optional<Assets::Texture> loadMaterial(const std::string& name, Logger& logger) override;

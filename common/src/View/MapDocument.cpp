@@ -1598,7 +1598,7 @@ Model::EntityNode* MapDocument::createBrushEntity(const Assets::BrushEntityDefin
     m_world->entityPropertyConfig(), Model::EntityPropertyKeys::Model, uniqueName);
 
   auto* entityNode = new Model::EntityNode{std::move(entity)};
-    
+
   auto name = std::stringstream{};
   name << "Create " << definition->name();
 

@@ -484,12 +484,6 @@ static auto withEntityParser(
   ensure(file != nullptr, "file is null");
 
   const auto modelName = path.lastComponent().asString();
-    } else if (
-      isModelFormat("obj", extension, supported) && kdl::vec_contains(supported, "obj_doom3")) {
-      auto reader = file->reader().buffer();
-      // has to be the whole path for implicit textures!
-      IO::Doom3ObjParser parser(path, std::begin(reader), std::end(reader), m_fs);
-      return parser.initializeModel(logger);
   auto reader = file->reader().buffer();
 
   if (IO::MdlParser::canParse(path, reader)) {
@@ -515,6 +509,10 @@ static auto withEntityParser(
     return fun(parser);
   } else if (IO::AseParser::canParse(path)) {
     auto parser = IO::AseParser{modelName, reader.stringView(), fs};
+    return fun(parser);
+  } else if (IO::Doom3ObjParser::canParse(path)) {
+    // has to be the whole path for implicit textures!
+    auto parser = IO::Doom3ObjParser{path, reader.stringView(), fs};
     return fun(parser);
   } else if (IO::NvObjParser::canParse(path)) {
     // has to be the whole path for implicit textures!
@@ -576,12 +574,6 @@ void GameImpl::doLoadFrame(
     };
 
     return withEntityParser(m_fs, path, getPalette, loadFrame);
-      parser.loadFrame(frameIndex, model, logger);
-    } else if (
-      isModelFormat("obj", extension, supported) && kdl::vec_contains(supported, "obj_doom3")) {
-      auto reader = file->reader().buffer();
-      // has to be the whole path for implicit textures!
-      IO::Doom3ObjParser parser(path, std::begin(reader), std::end(reader), m_fs);
   } catch (FileSystemException& e) {
     throw GameException("Could not load model " + path.asString() + ": " + std::string(e.what()));
   } catch (AssetException& e) {
