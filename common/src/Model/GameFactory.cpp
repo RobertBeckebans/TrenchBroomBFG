@@ -214,7 +214,7 @@ void GameFactory::loadGameConfigs() {
   auto errors = std::vector<std::string>{};
 
   const auto configFiles =
-    m_configFS->findItemsRecursively(IO::Path(""), IO::FileNameMatcher("GameConfig.cfg"));
+    m_configFS->findItemsRecursively(IO::Path(""), IO::FileNameMatcher("GameConfigBFG.cfg"));
   for (const auto& configFilePath : configFiles) {
     try {
       loadGameConfig(configFilePath);
