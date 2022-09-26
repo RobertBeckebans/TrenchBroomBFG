@@ -36,7 +36,6 @@ Here is an overview of the changes made to TrenchBroom:
 * Changed Rotation Tool behaviour to use "angles" by default
 * Translucent materials that might cause BSP leaks have a purple rectangle border in the Texture Browser
 * Changed OBJ exporter so exported models can be easier reimported by RBDOOM-3-BFG
-* Changed Assimp importer so models exported from Blender are expected to turn off the Transform: +Y-Up option
 
 ## Issues
 * It doesn't allow to create bezier patches at the moment so you won't be able to edit existing Doom 3 maps
