@@ -568,8 +568,8 @@ void MapDocumentCommandFacade::doClearCommandProcessor() {
   m_commandProcessor->clear();
 }
 
-void MapDocumentCommandFacade::doStartTransaction(const std::string& name) {
-  m_commandProcessor->startTransaction(name);
+void MapDocumentCommandFacade::doStartTransaction(std::string name) {
+  m_commandProcessor->startTransaction(std::move(name));
 }
 
 void MapDocumentCommandFacade::doCommitTransaction() {
@@ -581,12 +581,12 @@ void MapDocumentCommandFacade::doRollbackTransaction() {
 }
 
 std::unique_ptr<CommandResult> MapDocumentCommandFacade::doExecute(
-  std::unique_ptr<Command>&& command) {
+  std::unique_ptr<Command> command) {
   return m_commandProcessor->execute(std::move(command));
 }
 
 std::unique_ptr<CommandResult> MapDocumentCommandFacade::doExecuteAndStore(
-  std::unique_ptr<UndoableCommand>&& command) {
+  std::unique_ptr<UndoableCommand> command) {
   return m_commandProcessor->executeAndStore(std::move(command));
 }
 } // namespace View

@@ -35,9 +35,6 @@ class Node;
 
 namespace View {
 class AddRemoveNodesCommand : public UndoableCommand {
-public:
-  static const CommandType Type;
-
 private:
   enum class Action {
     Add,
@@ -52,21 +49,17 @@ private:
 public:
   static std::unique_ptr<AddRemoveNodesCommand> add(
     Model::Node* parent, const std::vector<Model::Node*>& children,
-    std::vector<std::pair<const Model::GroupNode*, std::vector<Model::GroupNode*>>>
-      linkedGroupsToUpdate);
+    std::vector<const Model::GroupNode*> changedLinkedGroups);
   static std::unique_ptr<AddRemoveNodesCommand> add(
     const std::map<Model::Node*, std::vector<Model::Node*>>& nodes,
-    std::vector<std::pair<const Model::GroupNode*, std::vector<Model::GroupNode*>>>
-      linkedGroupsToUpdate);
+    std::vector<const Model::GroupNode*> changedLinkedGroups);
   static std::unique_ptr<AddRemoveNodesCommand> remove(
     const std::map<Model::Node*, std::vector<Model::Node*>>& nodes,
-    std::vector<std::pair<const Model::GroupNode*, std::vector<Model::GroupNode*>>>
-      linkedGroupsToUpdate);
+    std::vector<const Model::GroupNode*> changedLinkedGroups);
 
   AddRemoveNodesCommand(
     Action action, const std::map<Model::Node*, std::vector<Model::Node*>>& nodes,
-    std::vector<std::pair<const Model::GroupNode*, std::vector<Model::GroupNode*>>>
-      linkedGroupsToUpdate);
+    std::vector<const Model::GroupNode*> changedLinkedGroups);
   ~AddRemoveNodesCommand() override;
 
 private:
@@ -77,8 +70,6 @@ private:
 
   void doAction(MapDocumentCommandFacade* document);
   void undoAction(MapDocumentCommandFacade* document);
-
-  bool doCollateWith(UndoableCommand* command) override;
 
   deleteCopyAndMove(AddRemoveNodesCommand);
 };

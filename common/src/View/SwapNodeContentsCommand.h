@@ -26,7 +26,6 @@
 
 #include <memory>
 #include <string>
-#include <tuple>
 #include <vector>
 
 namespace TrenchBroom {
@@ -39,9 +38,6 @@ class Node;
 
 namespace View {
 class SwapNodeContentsCommand : public UndoableCommand {
-public:
-  static const CommandType Type;
-
 protected:
   std::vector<std::pair<Model::Node*, Model::NodeContents>> m_nodes;
   UpdateLinkedGroupsHelper m_updateLinkedGroupsHelper;
@@ -49,14 +45,13 @@ protected:
 public:
   SwapNodeContentsCommand(
     const std::string& name, std::vector<std::pair<Model::Node*, Model::NodeContents>> nodes,
-    std::vector<std::pair<const Model::GroupNode*, std::vector<Model::GroupNode*>>>
-      linkedGroupsToUpdate);
+    std::vector<const Model::GroupNode*> changedLinkedGroups);
   ~SwapNodeContentsCommand();
 
   std::unique_ptr<CommandResult> doPerformDo(MapDocumentCommandFacade* document) override;
   std::unique_ptr<CommandResult> doPerformUndo(MapDocumentCommandFacade* document) override;
 
-  bool doCollateWith(UndoableCommand* command) override;
+  bool doCollateWith(UndoableCommand& command) override;
 
   deleteCopyAndMove(SwapNodeContentsCommand);
 };

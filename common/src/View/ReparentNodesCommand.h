@@ -35,9 +35,6 @@ class Node;
 
 namespace View {
 class ReparentNodesCommand : public UndoableCommand {
-public:
-  static const CommandType Type;
-
 private:
   std::map<Model::Node*, std::vector<Model::Node*>> m_nodesToAdd;
   std::map<Model::Node*, std::vector<Model::Node*>> m_nodesToRemove;
@@ -47,14 +44,12 @@ public:
   static std::unique_ptr<ReparentNodesCommand> reparent(
     std::map<Model::Node*, std::vector<Model::Node*>> nodesToAdd,
     std::map<Model::Node*, std::vector<Model::Node*>> nodesToRemove,
-    std::vector<std::pair<const Model::GroupNode*, std::vector<Model::GroupNode*>>>
-      linkedGroupsToUpdate);
+    std::vector<const Model::GroupNode*> changedLinkedGroups);
 
   ReparentNodesCommand(
     std::map<Model::Node*, std::vector<Model::Node*>> nodesToAdd,
     std::map<Model::Node*, std::vector<Model::Node*>> nodesToRemove,
-    std::vector<std::pair<const Model::GroupNode*, std::vector<Model::GroupNode*>>>
-      linkedGroupsToUpdate);
+    std::vector<const Model::GroupNode*> changedLinkedGroups);
 
 private:
   std::unique_ptr<CommandResult> doPerformDo(MapDocumentCommandFacade* document) override;
@@ -62,8 +57,6 @@ private:
 
   void doAction(MapDocumentCommandFacade* document);
   void undoAction(MapDocumentCommandFacade* document);
-
-  bool doCollateWith(UndoableCommand* command) override;
 
   deleteCopyAndMove(ReparentNodesCommand);
 };

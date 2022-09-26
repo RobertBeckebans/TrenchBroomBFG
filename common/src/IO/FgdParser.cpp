@@ -20,6 +20,7 @@
 #include "FgdParser.h"
 
 #include "Assets/PropertyDefinition.h"
+#include "EL/ELExceptions.h"
 #include "IO/DiskFileSystem.h"
 #include "IO/ELParser.h"
 #include "IO/EntityDefinitionClassInfo.h"
@@ -297,7 +298,8 @@ EntityDefinitionClassInfo FgdParser::parseClassInfo(
       classInfo.size = parseSize(status);
     } else if (
       kdl::ci::str_is_equal(typeName, "model") || kdl::ci::str_is_equal(typeName, "studio") ||
-      kdl::ci::str_is_equal(typeName, "studioprop")) {
+      kdl::ci::str_is_equal(typeName, "studioprop") || kdl::ci::str_is_equal(typeName, "sprite") ||
+      kdl::ci::str_is_equal(typeName, "iconsprite")) {
       if (classInfo.modelDefinition) {
         status.warn(token.line(), token.column(), "Found multiple model properties");
       }
@@ -391,10 +393,21 @@ Assets::ModelDefinition FgdParser::parseModel(ParserStatus& status) {
       m_tokenizer.restore(snapshot);
       throw e;
     }
+  } catch (const EL::EvaluationError& evaluationError) {
+    throw ParserException{m_tokenizer.line(), m_tokenizer.column(), evaluationError.what()};
   }
 }
 
 void FgdParser::skipClassProperty(ParserStatus& /* status */) {
+  // We have already consumed the property name.
+  // We assume that the next token we should encounter is
+  // an open parenthesis. If the next token is not a
+  // parenthesis, it forms part of the next property
+  // (which we should not skip).
+  if (m_tokenizer.peekToken().type() != FgdToken::OParenthesis) {
+    return;
+  }
+
   size_t depth = 0;
   Token token;
   do {

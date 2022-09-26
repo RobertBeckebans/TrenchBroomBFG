@@ -46,28 +46,35 @@ struct PaletteData {
 };
 
 static std::shared_ptr<PaletteData> makePaletteData(const std::vector<unsigned char>& data) {
-  if (data.size() != 768) {
+  if (data.size() != 768 && data.size() != 1024) {
     throw AssetException(
-      "Could not load palette, expected 768 bytes, got " + std::to_string(data.size()));
+      "Could not load palette, expected 768 or 1024 bytes, got " + std::to_string(data.size()));
   }
 
   PaletteData result;
-  result.opaqueData.reserve(1024);
 
-  for (size_t i = 0; i < 256; ++i) {
-    const auto r = data[3 * i + 0];
-    const auto g = data[3 * i + 1];
-    const auto b = data[3 * i + 2];
+  if (data.size() == 1024) {
+    // The data is already in RGBA format, don't process it
+    result.opaqueData = data;
+    result.index255TransparentData = data;
+  } else {
+    result.opaqueData.reserve(1024);
 
-    result.opaqueData.push_back(r);
-    result.opaqueData.push_back(g);
-    result.opaqueData.push_back(b);
-    result.opaqueData.push_back(0xFF);
+    for (size_t i = 0; i < 256; ++i) {
+      const auto r = data[3 * i + 0];
+      const auto g = data[3 * i + 1];
+      const auto b = data[3 * i + 2];
+
+      result.opaqueData.push_back(r);
+      result.opaqueData.push_back(g);
+      result.opaqueData.push_back(b);
+      result.opaqueData.push_back(0xFF);
+    }
+
+    // build index255TransparentData from opaqueData
+    result.index255TransparentData = result.opaqueData;
+    result.index255TransparentData[1023] = 0;
   }
-
-  // build index255TransparentData from opaqueData
-  result.index255TransparentData = result.opaqueData;
-  result.index255TransparentData[1023] = 0;
 
   return std::make_shared<PaletteData>(std::move(result));
 }
@@ -130,7 +137,7 @@ bool Palette::initialized() const {
 }
 
 bool Palette::indexedToRgba(
-  IO::BufferedReader& reader, const size_t pixelCount, TextureBuffer& rgbaImage,
+  IO::Reader& reader, const size_t pixelCount, TextureBuffer& rgbaImage,
   const PaletteTransparency transparency, Color& averageColor) const {
   ensure(rgbaImage.size() == 4 * pixelCount, "incorrect destination buffer size");
   ensure(initialized(), "indexedToRgba called on uninitialized palette");
@@ -139,15 +146,10 @@ bool Palette::indexedToRgba(
                                        ? m_data->opaqueData.data()
                                        : m_data->index255TransparentData.data();
 
-  const unsigned char* indexedImage =
-    reinterpret_cast<const unsigned char*>(reader.begin() + reader.position());
-  reader.seekForward(
-    pixelCount); // throws ReaderException if there aren't pixelCount bytes available
-
   // Write rgba pixels
   unsigned char* const rgbaData = rgbaImage.data();
   for (size_t i = 0; i < pixelCount; ++i) {
-    const int index = static_cast<int>(indexedImage[i]);
+    const int index = reader.readInt<unsigned char>();
 
     std::memcpy(rgbaData + (i * 4), &paletteData[index * 4], 4);
   }

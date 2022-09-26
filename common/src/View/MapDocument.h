@@ -141,12 +141,12 @@ protected:
   std::unique_ptr<RepeatStack> m_repeatStack;
 
 public: // notification
-  Notifier<Command*> commandDoNotifier;
-  Notifier<Command*> commandDoneNotifier;
-  Notifier<Command*> commandDoFailedNotifier;
-  Notifier<UndoableCommand*> commandUndoNotifier;
-  Notifier<UndoableCommand*> commandUndoneNotifier;
-  Notifier<UndoableCommand*> commandUndoFailedNotifier;
+  Notifier<Command&> commandDoNotifier;
+  Notifier<Command&> commandDoneNotifier;
+  Notifier<Command&> commandDoFailedNotifier;
+  Notifier<UndoableCommand&> commandUndoNotifier;
+  Notifier<UndoableCommand&> commandUndoneNotifier;
+  Notifier<UndoableCommand&> commandUndoFailedNotifier;
   Notifier<const std::string&> transactionDoneNotifier;
   Notifier<const std::string&> transactionUndoneNotifier;
 
@@ -463,6 +463,8 @@ public:
   void separateLinkedGroups();
   bool canSeparateLinkedGroups() const;
 
+  bool canUpdateLinkedGroups(const std::vector<Model::Node*>& nodes) const;
+
 private:
   void separateSelectedLinkedGroups(bool relinkGroups);
 
@@ -511,8 +513,7 @@ public: // modifying objects, declared in MapFacade interface
   bool swapNodeContents(
     const std::string& commandName,
     std::vector<std::pair<Model::Node*, Model::NodeContents>> nodesToSwap,
-    std::vector<std::pair<const Model::GroupNode*, std::vector<Model::GroupNode*>>>
-      linkedGroupsToUpdate);
+    std::vector<const Model::GroupNode*> changedLinkedGroups);
   bool swapNodeContents(
     const std::string& commandName,
     std::vector<std::pair<Model::Node*, Model::NodeContents>> nodesToSwap);
@@ -595,7 +596,7 @@ public: // command processing
   void clearRepeatableCommands();
 
 public: // transactions
-  void startTransaction(const std::string& name = "");
+  void startTransaction(std::string name);
   void rollbackTransaction();
   void commitTransaction();
   void cancelTransaction();
@@ -613,13 +614,13 @@ private: // subclassing interface for command processing
   virtual void doRedoCommand() = 0;
 
   virtual void doClearCommandProcessor() = 0;
-  virtual void doStartTransaction(const std::string& name) = 0;
+  virtual void doStartTransaction(std::string name) = 0;
   virtual void doCommitTransaction() = 0;
   virtual void doRollbackTransaction() = 0;
 
-  virtual std::unique_ptr<CommandResult> doExecute(std::unique_ptr<Command>&& command) = 0;
+  virtual std::unique_ptr<CommandResult> doExecute(std::unique_ptr<Command> command) = 0;
   virtual std::unique_ptr<CommandResult> doExecuteAndStore(
-    std::unique_ptr<UndoableCommand>&& command) = 0;
+    std::unique_ptr<UndoableCommand> command) = 0;
 
 public: // asset state management
   void commitPendingAssets();
@@ -751,8 +752,8 @@ private: // observers
   void modsWillChange();
   void modsDidChange();
   void preferenceDidChange(const IO::Path& path);
-  void commandDone(Command* command);
-  void commandUndone(UndoableCommand* command);
+  void commandDone(Command& command);
+  void commandUndone(UndoableCommand& command);
   void transactionDone(const std::string& name);
   void transactionUndone(const std::string& name);
 };
@@ -763,16 +764,16 @@ private:
   bool m_cancelled;
 
 public:
-  explicit Transaction(std::weak_ptr<MapDocument> document, const std::string& name = "");
-  explicit Transaction(std::shared_ptr<MapDocument> document, const std::string& name = "");
-  explicit Transaction(MapDocument* document, const std::string& name = "");
+  explicit Transaction(std::weak_ptr<MapDocument> document, std::string name = "");
+  explicit Transaction(std::shared_ptr<MapDocument> document, std::string name = "");
+  explicit Transaction(MapDocument* document, std::string name = "");
   ~Transaction();
 
   void rollback();
   void cancel();
 
 private:
-  void begin(const std::string& name);
+  void begin(std::string name);
   void commit();
 };
 } // namespace View

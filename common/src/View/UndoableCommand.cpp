@@ -26,10 +26,9 @@
 
 namespace TrenchBroom {
 namespace View {
-UndoableCommand::UndoableCommand(
-  const CommandType type, const std::string& name, const bool updateModificationCount)
-  : Command(type, name)
-  , m_modificationCount(updateModificationCount ? 1u : 0u) {}
+UndoableCommand::UndoableCommand(std::string name, const bool updateModificationCount)
+  : Command{std::move(name)}
+  , m_modificationCount{updateModificationCount ? 1u : 0u} {}
 
 UndoableCommand::~UndoableCommand() {}
 
@@ -57,12 +56,16 @@ std::unique_ptr<CommandResult> UndoableCommand::performUndo(MapDocumentCommandFa
   return result;
 }
 
-bool UndoableCommand::collateWith(UndoableCommand* command) {
-  assert(command != this);
-  if (command->type() == m_type && doCollateWith(command)) {
-    m_modificationCount += command->m_modificationCount;
+bool UndoableCommand::collateWith(UndoableCommand& command) {
+  assert(&command != this);
+  if (doCollateWith(command)) {
+    m_modificationCount += command.m_modificationCount;
     return true;
   }
+  return false;
+}
+
+bool UndoableCommand::doCollateWith(UndoableCommand&) {
   return false;
 }
 } // namespace View

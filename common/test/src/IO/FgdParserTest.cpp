@@ -43,6 +43,8 @@ TEST_CASE("FgdParserTest.parseIncludedFgdFiles", "[FgdParserTest]") {
     Disk::findItemsRecursively(basePath, IO::FileExtensionMatcher("fgd"));
 
   for (const Path& path : cfgFiles) {
+    CAPTURE(path);
+
     auto file = Disk::openFile(path);
     auto reader = file->reader().buffer();
 
@@ -50,7 +52,6 @@ TEST_CASE("FgdParserTest.parseIncludedFgdFiles", "[FgdParserTest]") {
     FgdParser parser(reader.stringView(), defaultColor, path);
 
     TestParserStatus status;
-    UNSCOPED_INFO("Parsing FGD file " << path.asString() << " failed");
     CHECK_NOTHROW(parser.parseDefinitions(status));
 
     /* Disabled because our files are full of previously undetected problems
@@ -249,6 +250,36 @@ TEST_CASE("FgdParserTest.parsePointClassWithBaseClasses", "[FgdParserTest]") {
 
   const auto& propertyDefinitions = definition->propertyDefinitions();
   CHECK(propertyDefinitions.size() == 9u);
+
+  kdl::vec_clear_and_delete(definitions);
+}
+
+TEST_CASE("FgdParserTest.parsePointClassWithUnknownClassProperties", "[FgdParserTest]") {
+  const std::string file =
+    "@PointClass unknown1 unknown2(spaghetti) = info_notnull : \"Wildcard entity\" // I love you\n"
+    "[\n"
+    "	use(string) : \"self.use\"\n"
+    "	think(string) : \"self.think\"\n"
+    "	nextthink(integer) : \"nextthink\"\n"
+    "	noise(string) : \"noise\"\n"
+    "	touch(string) : \"self.touch\"\n"
+    "]\n";
+
+  const Color defaultColor(1.0f, 1.0f, 1.0f, 1.0f);
+  FgdParser parser(file, defaultColor);
+
+  TestParserStatus status;
+  auto definitions = parser.parseDefinitions(status);
+  CHECK(definitions.size() == 1u);
+
+  Assets::EntityDefinition* definition = definitions[0];
+  CHECK(definition->type() == Assets::EntityDefinitionType::PointEntity);
+  CHECK(definition->name() == std::string("info_notnull"));
+  CHECK(definition->color() == defaultColor);
+  CHECK(definition->description() == std::string("Wildcard entity"));
+
+  const auto& propertyDefinitions = definition->propertyDefinitions();
+  CHECK(propertyDefinitions.size() == 5u);
 
   kdl::vec_clear_and_delete(definitions);
 }

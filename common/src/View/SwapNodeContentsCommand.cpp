@@ -30,15 +30,12 @@
 
 namespace TrenchBroom {
 namespace View {
-const Command::CommandType SwapNodeContentsCommand::Type = Command::freeType();
-
 SwapNodeContentsCommand::SwapNodeContentsCommand(
   const std::string& name, std::vector<std::pair<Model::Node*, Model::NodeContents>> nodes,
-  std::vector<std::pair<const Model::GroupNode*, std::vector<Model::GroupNode*>>>
-    linkedGroupsToUpdate)
-  : UndoableCommand(Type, name, true)
+  std::vector<const Model::GroupNode*> changedLinkedGroups)
+  : UndoableCommand(name, true)
   , m_nodes(std::move(nodes))
-  , m_updateLinkedGroupsHelper(std::move(linkedGroupsToUpdate)) {}
+  , m_updateLinkedGroupsHelper(std::move(changedLinkedGroups)) {}
 
 SwapNodeContentsCommand::~SwapNodeContentsCommand() = default;
 
@@ -62,22 +59,22 @@ std::unique_ptr<CommandResult> SwapNodeContentsCommand::doPerformUndo(
   return std::make_unique<CommandResult>(true);
 }
 
-bool SwapNodeContentsCommand::doCollateWith(UndoableCommand* command) {
-  auto* other = static_cast<SwapNodeContentsCommand*>(command);
+bool SwapNodeContentsCommand::doCollateWith(UndoableCommand& command) {
+  if (auto* other = dynamic_cast<SwapNodeContentsCommand*>(&command)) {
+    auto myNodes = kdl::vec_transform(m_nodes, [](const auto& pair) {
+      return pair.first;
+    });
+    auto theirNodes = kdl::vec_transform(other->m_nodes, [](const auto& pair) {
+      return pair.first;
+    });
 
-  auto myNodes = kdl::vec_transform(m_nodes, [](const auto& pair) {
-    return pair.first;
-  });
-  auto theirNodes = kdl::vec_transform(other->m_nodes, [](const auto& pair) {
-    return pair.first;
-  });
+    kdl::vec_sort(myNodes);
+    kdl::vec_sort(theirNodes);
 
-  kdl::vec_sort(myNodes);
-  kdl::vec_sort(theirNodes);
-
-  if (myNodes == theirNodes) {
-    m_updateLinkedGroupsHelper.collateWith(other->m_updateLinkedGroupsHelper);
-    return true;
+    if (myNodes == theirNodes) {
+      m_updateLinkedGroupsHelper.collateWith(other->m_updateLinkedGroupsHelper);
+      return true;
+    }
   }
 
   return false;
