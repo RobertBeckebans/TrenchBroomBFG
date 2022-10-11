@@ -221,7 +221,8 @@ void Quake3ShaderParser::parseBodyEntry(Assets::Quake3Shader& shader, ParserStat
     }
 #endif
     shader.editorImage = Path(token.data());
-  } else if (kdl::ci::str_is_equal(key, "diffusemap")) {
+  } else if (
+    kdl::ci::str_is_equal(key, "diffusemap") || kdl::ci::str_is_equal(key, "basecolormap")) {
     token = expect(Quake3ShaderToken::String, m_tokenizer.nextToken());
     shader.diffuseImage = Path(token.data());
   } else if (key == "q3map_lightimage") {
@@ -240,7 +241,7 @@ void Quake3ShaderParser::parseBodyEntry(Assets::Quake3Shader& shader, ParserStat
     } else if (value == "none" || value == "disable") {
       shader.culling = Assets::Quake3Shader::Culling::None;
     }
-    // RB: Doom 3 specific that don't require surfaceparm in front
+    // RB: Doom 3 keywords don't require surfaceparm as prefix
   } else if (kdl::ci::str_is_equal(key, "translucent")) {
     shader.surfaceParms.insert("translucent");
   } else if (kdl::ci::str_is_equal(key, "twosided")) {
