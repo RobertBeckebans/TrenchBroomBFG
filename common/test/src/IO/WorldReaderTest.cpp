@@ -720,8 +720,8 @@ TEST_CASE("WorldReaderTest.parseBrushesWithLayer", "[WorldReaderTest]")
   CHECK(defaultLayerNode->layer().sortIndex() == Model::Layer::defaultLayerSortIndex());
   CHECK(
     myLayerNode->layer().sortIndex()
-    == 0); // The layer didn't have a sort index (saved in an older version of TB), so
-           // it's assigned 0
+    == 0); // The layer didn't have a sort index (saved in an
+           // older version of TB), so it's assigned 0
 
   CHECK(defaultLayerNode->childCount() == 2u);
   CHECK(myLayerNode->childCount() == 1u);

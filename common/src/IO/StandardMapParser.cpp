@@ -336,6 +336,8 @@ void StandardMapParser::parseBrushOrBrushPrimitiveOrPatch(ParserStatus& status)
       if (token.data() == BrushPrimitiveId)
       {
         parseBrushPrimitive(status, startLine);
+      else
+      {
       }
       else if (token.data() == PatchId3)
       {
@@ -433,6 +435,7 @@ void StandardMapParser::parseBrush(
       if (!primitive)
       {
         if (!beginBrushCalled)
+        {
         {
           onBeginBrush(startLine, status);
         }

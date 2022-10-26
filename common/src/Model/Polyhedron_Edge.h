@@ -184,10 +184,9 @@ bool Polyhedron_Edge<T, FP, VP>::hasPositions(
   const vm::vec<T, 3>& position1, const vm::vec<T, 3>& position2, const T epsilon) const
 {
   return (
-    (vm::is_equal(firstVertex()->position(), position1, epsilon) &&
-     vm::is_equal(secondVertex()->position(), position2, epsilon)) ||
-    (vm::is_equal(firstVertex()->position(), position2, epsilon) &&
-     vm::is_equal(secondVertex()->position(), position1, epsilon)));
+    (vm::is_equal(firstVertex()->position(), position1, epsilon)
+     && vm::is_equal(secondVertex()->position(), position2, epsilon))
+    || (vm::is_equal(firstVertex()->position(), position2, epsilon) && vm::is_equal(secondVertex()->position(), position1, epsilon)));
 }
 
 template <typename T, typename FP, typename VP>

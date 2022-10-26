@@ -174,8 +174,8 @@ std::unique_ptr<Assets::EntityModel> AssimpParser::doInitializeModel(
 
   const auto* scene = importer.ReadFile(
     m_path.asString(),
-    aiProcess_Triangulate | aiProcess_FlipWindingOrder | aiProcess_MakeLeftHanded
-      | aiProcess_JoinIdenticalVertices | aiProcess_SortByPType | aiProcess_FlipUVs);
+    aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_FlipWindingOrder
+      | aiProcess_SortByPType | aiProcess_FlipUVs);
 
   if (!scene)
   {
@@ -188,27 +188,13 @@ std::unique_ptr<Assets::EntityModel> AssimpParser::doInitializeModel(
 
   surface.setSkins(std::move(m_textures));
 
-  // Assimp files import as y-up. Use this transform to change the model to z-up.
-  auto axisTransform = aiMatrix4x4{
-    1.0f,
-    0.0f,
-    0.0f,
-    0.0f,
-    0.0f,
-    0.0f,
-    1.0f,
-    0.0f,
-    0.0f,
-    1.0f,
-    0.0f,
-    0.0f,
-    0.0f,
-    0.0f,
-    0.0f,
-    1.0f};
-
+  // Assimp files import as y-up. We must multiply the root transform with an axis
+  // transform matrix.
   processNode(
-    *scene->mRootNode, *scene, scene->mRootNode->mTransformation, axisTransform);
+    *scene->mRootNode,
+    *scene,
+    scene->mRootNode->mTransformation,
+    get_axis_transform(*scene));
 
   // Build bounds.
   auto bounds = vm::bbox3f::builder{};
@@ -259,21 +245,21 @@ AssimpParser::AssimpParser(Path path, const FileSystem& fs)
 
 bool AssimpParser::canParse(const Path& path)
 {
+  // clang-format off
   static const auto supportedExtensions = std::vector<std::string>{
     // Quake model formats have been omitted since Trenchbroom's got its own parsers
     // already.
     "3mf",  "dae",      "xml",          "blend",    "bvh",       "3ds",  "ase",
-    "lwo",  "lws",      "md5mesh",      "md5anim",  "md5camera", // Lightwave and Doom 3
-                                                                 // formats.
+    "lwo",  "lws",      "md5mesh",      "md5anim",  "md5camera", // Lightwave and Doom 3 formats
     "gltf", "fbx",      "glb",          "ply",      "dxf",       "ifc",  "iqm",
     "nff",  "smd",      "vta", // .smd and .vta are uncompiled Source engine models.
     "mdc",  "x",        "q30",          "qrs",      "ter",       "raw",  "ac",
     "ac3d", "stl",      "dxf",          "irrmesh",  "irr",       "off",
-    "obj", // .obj files will only be parsed by Assimp if the neverball importer isn't
-           // enabled.
+    "obj", // .obj files will only be parsed by Assimp if the neverball importer isn't enabled
     "mdl", // 3D GameStudio Model. It requires a palette file to load.
     "hmp",  "mesh.xml", "skeleton.xml", "material", "ogex",      "ms3d", "lxo",
     "csm",  "ply",      "cob",          "scn",      "xgl"};
+  // clang-format on
 
   return kdl::vec_contains(supportedExtensions, kdl::str_to_lower(path.extension()));
 }
@@ -484,7 +470,67 @@ void AssimpParser::processMaterials(const aiScene& scene, Logger& logger)
         + materialName + ": " + exception.what());
     }
   }
-#endif
+}
+
+aiMatrix4x4 AssimpParser::get_axis_transform(const aiScene& scene)
+{
+  aiMatrix4x4 matrix = aiMatrix4x4();
+
+  if (scene.mMetaData)
+  {
+    // These MUST be in32_t, or the metadata 'Get' function will get confused.
+    int32_t upAxis = 0, frontAxis = 0, coordAxis = 0, upAxisSign = 0, frontAxisSign = 0,
+            coordAxisSign = 0;
+    float unitScale = 1.0f;
+
+    bool metadataPresent = scene.mMetaData->Get("UpAxis", upAxis)
+                           && scene.mMetaData->Get("UpAxisSign", upAxisSign)
+                           && scene.mMetaData->Get("FrontAxis", frontAxis)
+                           && scene.mMetaData->Get("FrontAxisSign", frontAxisSign)
+                           && scene.mMetaData->Get("CoordAxis", coordAxis)
+                           && scene.mMetaData->Get("CoordAxisSign", coordAxisSign)
+                           && scene.mMetaData->Get("UnitScaleFactor", unitScale);
+
+    if (!metadataPresent)
+    {
+      // By default, all 3D data from is provided in a right-handed coordinate system.
+      // +X to the right. -Z into the screen. +Y upwards.
+      upAxis = 1;
+      upAxisSign = 1;
+      frontAxis = 2;
+      frontAxisSign = 1;
+      coordAxis = 0;
+      coordAxisSign = 1;
+      unitScale = 1.0f;
+    }
+
+    aiVector3D up, front, coord;
+    up[static_cast<unsigned int>(upAxis)] = static_cast<float>(upAxisSign) * unitScale;
+    front[static_cast<unsigned int>(frontAxis)] =
+      static_cast<float>(frontAxisSign) * unitScale;
+    coord[static_cast<unsigned int>(coordAxis)] =
+      static_cast<float>(coordAxisSign) * unitScale;
+
+    matrix = aiMatrix4x4t(
+      coord.x,
+      coord.y,
+      coord.z,
+      0.0f,
+      -front.x,
+      -front.y,
+      -front.z,
+      0.0f,
+      up.x,
+      up.y,
+      up.z,
+      0.0f,
+      0.0f,
+      0.0f,
+      0.0f,
+      1.0f);
+  }
+
+  return matrix;
 }
 
 } // namespace IO

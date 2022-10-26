@@ -29,6 +29,7 @@
 #include "Model/PatchNode.h"
 #include "Model/WorldNode.h"
 #include "View/MapDocument.h"
+#include "View/QtUtils.h"
 
 #include <kdl/memory_utils.h>
 #include <kdl/overload.h>
@@ -50,7 +51,7 @@ namespace View
 IssueBrowserView::IssueBrowserView(std::weak_ptr<MapDocument> document, QWidget* parent)
   : QWidget(parent)
   , m_document(document)
-  , m_hiddenGenerators(0)
+  , m_hiddenIssueTypes(0)
   , m_showHiddenIssues(false)
   , m_valid(false)
 {
@@ -70,22 +71,24 @@ void IssueBrowserView::createGui()
   m_tableView->horizontalHeader()->setSectionsClickable(false);
   m_tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 
+  autoResizeRows(m_tableView);
+
   auto* layout = new QHBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
   layout->addWidget(m_tableView);
   setLayout(layout);
 }
 
-int IssueBrowserView::hiddenGenerators() const
+int IssueBrowserView::hiddenIssueTypes() const
 {
-  return m_hiddenGenerators;
+  return m_hiddenIssueTypes;
 }
 
-void IssueBrowserView::setHiddenGenerators(const int hiddenGenerators)
+void IssueBrowserView::setHiddenIssueTypes(const int hiddenIssueTypes)
 {
-  if (hiddenGenerators == m_hiddenGenerators)
+  if (hiddenIssueTypes == m_hiddenIssueTypes)
     return;
-  m_hiddenGenerators = hiddenGenerators;
+  m_hiddenIssueTypes = hiddenIssueTypes;
   invalidate();
 }
 
@@ -113,7 +116,7 @@ void IssueBrowserView::updateSelection()
   auto document = kdl::mem_lock(m_document);
 
   std::vector<Model::Node*> nodes;
-  for (Model::Issue* issue : collectIssues(getSelection()))
+  for (const Model::Issue* issue : collectIssues(getSelection()))
   {
     if (!issue->addSelectableNodes(nodes))
     {
@@ -131,15 +134,15 @@ void IssueBrowserView::updateIssues()
   auto document = kdl::mem_lock(m_document);
   if (document->world() != nullptr)
   {
-    const auto& issueGenerators = document->world()->registeredIssueGenerators();
+    const auto validators = document->world()->registeredValidators();
 
-    auto issues = std::vector<Model::Issue*>{};
+    auto issues = std::vector<const Model::Issue*>{};
     const auto collectIssues = [&](auto* node) {
-      for (auto* issue : node->issues(issueGenerators))
+      for (auto* issue : node->issues(validators))
       {
         if (
           m_showHiddenIssues
-          || (!issue->hidden() && (issue->type() & m_hiddenGenerators) == 0))
+          || (!issue->hidden() && (issue->type() & m_hiddenIssueTypes) == 0))
         {
           issues.push_back(issue);
         }
@@ -173,27 +176,25 @@ void IssueBrowserView::updateIssues()
   }
 }
 
-void IssueBrowserView::applyQuickFix(const Model::IssueQuickFix* quickFix)
+void IssueBrowserView::applyQuickFix(const Model::IssueQuickFix& quickFix)
 {
-  ensure(quickFix != nullptr, "quickFix is null");
-
   auto document = kdl::mem_lock(m_document);
   const auto issues = collectIssues(getSelection());
 
   auto transaction =
-    Transaction{document, "Apply Quick Fix (" + quickFix->description() + ")"};
+    Transaction{document, "Apply Quick Fix (" + quickFix.description() + ")"};
   updateSelection();
-  quickFix->apply(document.get(), issues);
+  quickFix.apply(*document, issues);
   transaction.commit();
 }
 
-std::vector<Model::Issue*> IssueBrowserView::collectIssues(
+std::vector<const Model::Issue*> IssueBrowserView::collectIssues(
   const QList<QModelIndex>& indices) const
 {
   // Use a vector_set to filter out duplicates.
   // The QModelIndex list returned by getSelection() contains duplicates
   // (not sure why, current row and selected row?)
-  kdl::vector_set<Model::Issue*> result;
+  kdl::vector_set<const Model::Issue*> result;
   result.reserve(static_cast<size_t>(indices.size()));
   for (QModelIndex index : indices)
   {
@@ -206,7 +207,7 @@ std::vector<Model::Issue*> IssueBrowserView::collectIssues(
   return result.release_data();
 }
 
-std::vector<Model::IssueQuickFix*> IssueBrowserView::collectQuickFixes(
+std::vector<const Model::IssueQuickFix*> IssueBrowserView::collectQuickFixes(
   const QList<QModelIndex>& indices) const
 {
   if (indices.empty())
@@ -234,7 +235,7 @@ std::vector<Model::IssueQuickFix*> IssueBrowserView::collectQuickFixes(
 Model::IssueType IssueBrowserView::issueTypeMask() const
 {
   Model::IssueType result = ~static_cast<Model::IssueType>(0);
-  for (Model::Issue* issue : collectIssues(getSelection()))
+  for (const Model::Issue* issue : collectIssues(getSelection()))
   {
     result &= issue->type();
   }
@@ -244,9 +245,9 @@ Model::IssueType IssueBrowserView::issueTypeMask() const
 void IssueBrowserView::setIssueVisibility(const bool show)
 {
   auto document = kdl::mem_lock(m_document);
-  for (Model::Issue* issue : collectIssues(getSelection()))
+  for (const auto* issue : collectIssues(getSelection()))
   {
-    document->setIssueHidden(issue, !show);
+    document->setIssueHidden(*issue, !show);
   }
 
   invalidate();
@@ -286,18 +287,17 @@ void IssueBrowserView::itemRightClicked(const QPoint& pos)
   popupMenu->addAction(tr("Show"), this, &IssueBrowserView::showIssues);
   popupMenu->addAction(tr("Hide"), this, &IssueBrowserView::hideIssues);
 
-  const std::vector<Model::IssueQuickFix*> quickFixes =
-    collectQuickFixes(selectedIndexes);
+  const auto quickFixes = collectQuickFixes(selectedIndexes);
   if (!quickFixes.empty())
   {
     auto* quickFixMenu = new QMenu();
     quickFixMenu->setTitle(tr("Fix"));
 
-    for (Model::IssueQuickFix* quickFix : quickFixes)
+    for (const auto* quickFix : quickFixes)
     {
       quickFixMenu->addAction(
         QString::fromStdString(quickFix->description()), this, [=]() {
-          this->applyQuickFix(quickFix);
+          this->applyQuickFix(*quickFix);
         });
     }
 
@@ -350,14 +350,14 @@ IssueBrowserModel::IssueBrowserModel(QObject* parent)
 {
 }
 
-void IssueBrowserModel::setIssues(std::vector<Model::Issue*> issues)
+void IssueBrowserModel::setIssues(std::vector<const Model::Issue*> issues)
 {
   beginResetModel();
   m_issues = std::move(issues);
   endResetModel();
 }
 
-const std::vector<Model::Issue*>& IssueBrowserModel::issues()
+const std::vector<const Model::Issue*>& IssueBrowserModel::issues()
 {
   return m_issues;
 }

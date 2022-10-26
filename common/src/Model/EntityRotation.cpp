@@ -411,7 +411,6 @@ std::optional<EntityProperty> applyEntityRotation(
     const auto yawNPitchRoll =
       vm::vec3(yawPitchRoll.x(), -yawPitchRoll.y(), yawPitchRoll.z());
     return {{info.propertyKey, kdl::str_to_string(vm::round(yawNPitchRoll))}};
-    break;
   }
   case EntityRotationType::None:
     return std::nullopt;

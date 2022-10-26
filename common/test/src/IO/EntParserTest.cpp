@@ -252,8 +252,8 @@ Updated: 2011-03-02
 
   UNSCOPED_INFO("Expected property definition's long description to match element text");
   CHECK(
-    scaleDefinition->longDescription() ==
-    "Scaling factor (default 64), good values are between 50 and 300, depending on the map.");
+    scaleDefinition->longDescription()
+    == "Scaling factor (default 64), good values are between 50 and 300, depending on the map.");
 
   kdl::vec_clear_and_delete(definitions);
 }

@@ -393,12 +393,7 @@ bool TrenchBroomApp::openDocument(const IO::Path& path)
     {
       frame->close();
     }
-    QMessageBox::critical(
-      nullptr,
-      "TrenchBroom",
-      IO::pathAsQString(path) + " could not be opened.",
-      QMessageBox::Ok);
-    return false;
+    throw;
   }
 }
 

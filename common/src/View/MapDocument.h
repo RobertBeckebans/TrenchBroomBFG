@@ -319,14 +319,14 @@ private:
   bool pasteBrushFaces(const std::vector<Model::BrushFace>& faces);
 
 public: // point file management
-  void loadPointFile(const IO::Path path);
+  void loadPointFile(IO::Path path);
   bool isPointFileLoaded() const;
   bool canReloadPointFile() const;
   void reloadPointFile();
   void unloadPointFile();
 
 public: // portal file management
-  void loadPortalFile(const IO::Path path);
+  void loadPortalFile(IO::Path path);
   bool isPortalFileLoaded() const;
   bool canReloadPortalFile() const;
   void reloadPortalFile();
@@ -579,8 +579,7 @@ public: // modifying entity properties, declared in MapFacade interface
 
   bool convertEntityColorRange(
     const std::string& key, Assets::ColorRange::Type range) override;
-  bool updateSpawnflag(
-    const std::string& key, const size_t flagIndex, const bool setFlag) override;
+  bool updateSpawnflag(const std::string& key, size_t flagIndex, bool setFlag) override;
 
   bool setProtectedProperty(const std::string& key, bool value);
   bool clearProtectedProperties();
@@ -599,7 +598,7 @@ public:
     const Model::TexCoordSystemSnapshot& coordSystemSnapshot,
     const Model::BrushFaceAttributes& attribs,
     const vm::plane3& sourceFacePlane,
-    const Model::WrapStyle wrapStyle);
+    Model::WrapStyle wrapStyle);
   bool moveTextures(
     const vm::vec3f& cameraUp,
     const vm::vec3f& cameraRight,
@@ -751,14 +750,14 @@ public: // map soft bounds
   void setSoftMapBounds(const Model::Game::SoftMapBounds& bounds);
   Model::Game::SoftMapBounds softMapBounds() const;
 
-private: // issue management
-  void registerIssueGenerators();
+private: // validator management
+  void registerValidators();
 
 public:
-  void setIssueHidden(Model::Issue* issue, bool hidden);
+  void setIssueHidden(const Model::Issue& issue, bool hidden);
 
 private:
-  virtual void doSetIssueHidden(Model::Issue* issue, bool hidden) = 0;
+  virtual void doSetIssueHidden(const Model::Issue& issue, bool hidden) = 0;
 
 public:                     // tag management
   void registerSmartTags(); // public for testing

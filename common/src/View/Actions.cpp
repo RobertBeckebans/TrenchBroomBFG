@@ -294,8 +294,7 @@ std::vector<std::unique_ptr<Action>> ActionManager::createTagActions(
       result.push_back(makeAction(
         IO::Path("Tags/" + tag.name() + "/Enable"),
         QObject::tr("Turn Selection into %1").arg(QString::fromStdString(tag.name())),
-        ActionContext::AnyView | ActionContext::NodeSelection
-          | ActionContext::FaceSelection | ActionContext::AnyTool,
+        ActionContext::AnyView | ActionContext::AnySelection | ActionContext::AnyOrNoTool,
         [&tag](ActionExecutionContext& context) { context.view()->enableTag(tag); },
         [](ActionExecutionContext& context) { return context.hasDocument(); }));
     }
@@ -304,8 +303,7 @@ std::vector<std::unique_ptr<Action>> ActionManager::createTagActions(
       result.push_back(makeAction(
         IO::Path("Tags/" + tag.name() + "/Disable"),
         QObject::tr("Turn Selection into non-%1").arg(QString::fromStdString(tag.name())),
-        ActionContext::AnyView | ActionContext::NodeSelection
-          | ActionContext::FaceSelection | ActionContext::AnyTool,
+        ActionContext::AnyView | ActionContext::AnySelection | ActionContext::AnyOrNoTool,
         [&tag](ActionExecutionContext& context) { context.view()->disableTag(tag); },
         [](ActionExecutionContext& context) { return context.hasDocument(); }));
     }
@@ -432,7 +430,8 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Create brush"),
     QObject::tr("Create Brush"),
-    ActionContext::View3D | ActionContext::CreateComplexBrushTool,
+    ActionContext::View3D | ActionContext::AnyOrNoSelection
+      | ActionContext::CreateComplexBrushTool,
     QKeySequence(Qt::Key_Return),
     [](ActionExecutionContext& context) { context.view()->createComplexBrush(); },
     [](ActionExecutionContext& context) {
@@ -441,7 +440,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Toggle clip side"),
     QObject::tr("Toggle Clip Side"),
-    ActionContext::AnyView | ActionContext::ClipTool,
+    ActionContext::AnyView | ActionContext::AnyOrNoSelection | ActionContext::ClipTool,
     QKeySequence(Qt::CTRL + Qt::Key_Return),
     [](ActionExecutionContext& context) { context.view()->toggleClipSide(); },
     [](ActionExecutionContext& context) {
@@ -450,7 +449,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Perform clip"),
     QObject::tr("Perform Clip"),
-    ActionContext::AnyView | ActionContext::ClipTool,
+    ActionContext::AnyView | ActionContext::AnyOrNoSelection | ActionContext::ClipTool,
     QKeySequence(Qt::Key_Return),
     [](ActionExecutionContext& context) { context.view()->performClip(); },
     [](ActionExecutionContext& context) {
@@ -464,7 +463,7 @@ void ActionManager::createViewActions()
     IO::Path("Controls/Map view/Move objects up; Move objects forward"),
     QObject::tr("Move Forward"),
     ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::AnyVertexTool
-      | ActionContext::RotateTool,
+      | ActionContext::RotateTool | ActionContext::NoTool,
     QKeySequence(Qt::Key_Up),
     [](ActionExecutionContext& context) { context.view()->move(vm::direction::forward); },
     [](ActionExecutionContext& context) { return context.hasDocument(); });
@@ -472,7 +471,7 @@ void ActionManager::createViewActions()
     IO::Path("Controls/Map view/Move objects down; Move objects backward"),
     QObject::tr("Move Backward"),
     ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::AnyVertexTool
-      | ActionContext::RotateTool,
+      | ActionContext::RotateTool | ActionContext::NoTool,
     QKeySequence(Qt::Key_Down),
     [](ActionExecutionContext& context) {
       context.view()->move(vm::direction::backward);
@@ -482,7 +481,7 @@ void ActionManager::createViewActions()
     IO::Path("Controls/Map view/Move objects left"),
     QObject::tr("Move Left"),
     ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::AnyVertexTool
-      | ActionContext::RotateTool,
+      | ActionContext::RotateTool | ActionContext::NoTool,
     QKeySequence(Qt::Key_Left),
     [](ActionExecutionContext& context) { context.view()->move(vm::direction::left); },
     [](ActionExecutionContext& context) { return context.hasDocument(); });
@@ -490,7 +489,7 @@ void ActionManager::createViewActions()
     IO::Path("Controls/Map view/Move objects right"),
     QObject::tr("Move Right"),
     ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::AnyVertexTool
-      | ActionContext::RotateTool,
+      | ActionContext::RotateTool | ActionContext::NoTool,
     QKeySequence(Qt::Key_Right),
     [](ActionExecutionContext& context) { context.view()->move(vm::direction::right); },
     [](ActionExecutionContext& context) { return context.hasDocument(); });
@@ -498,7 +497,7 @@ void ActionManager::createViewActions()
     IO::Path("Controls/Map view/Move objects backward; Move objects up"),
     QObject::tr("Move Up"),
     ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::AnyVertexTool
-      | ActionContext::RotateTool,
+      | ActionContext::RotateTool | ActionContext::NoTool,
     QKeySequence(Qt::Key_PageUp),
     [](ActionExecutionContext& context) { context.view()->move(vm::direction::up); },
     [](ActionExecutionContext& context) { return context.hasDocument(); });
@@ -506,7 +505,7 @@ void ActionManager::createViewActions()
     IO::Path("Controls/Map view/Move objects forward; Move objects down"),
     QObject::tr("Move Down"),
     ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::AnyVertexTool
-      | ActionContext::RotateTool,
+      | ActionContext::RotateTool | ActionContext::NoTool,
     QKeySequence(Qt::Key_PageDown),
     [](ActionExecutionContext& context) { context.view()->move(vm::direction::down); },
     [](ActionExecutionContext& context) { return context.hasDocument(); });
@@ -517,7 +516,7 @@ void ActionManager::createViewActions()
     IO::Path("Controls/Map view/Duplicate and move objects up; Duplicate and move "
              "objects forward"),
     QObject::tr("Duplicate and Move Forward"),
-    ActionContext::AnyView | ActionContext::NodeSelection,
+    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::Key_Up),
     [](ActionExecutionContext& context) {
       context.view()->duplicateAndMoveObjects(vm::direction::forward);
@@ -527,7 +526,7 @@ void ActionManager::createViewActions()
     IO::Path("Controls/Map view/Duplicate and move objects down; Duplicate and move "
              "objects backward"),
     QObject::tr("Duplicate and Move Backward"),
-    ActionContext::AnyView | ActionContext::NodeSelection,
+    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::Key_Down),
     [](ActionExecutionContext& context) {
       context.view()->duplicateAndMoveObjects(vm::direction::backward);
@@ -536,7 +535,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Duplicate and move objects left"),
     QObject::tr("Duplicate and Move Left"),
-    ActionContext::AnyView | ActionContext::NodeSelection,
+    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::Key_Left),
     [](ActionExecutionContext& context) {
       context.view()->duplicateAndMoveObjects(vm::direction::left);
@@ -545,7 +544,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Duplicate and move objects right"),
     QObject::tr("Duplicate and Move Right"),
-    ActionContext::AnyView | ActionContext::NodeSelection,
+    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::Key_Right),
     [](ActionExecutionContext& context) {
       context.view()->duplicateAndMoveObjects(vm::direction::right);
@@ -555,7 +554,7 @@ void ActionManager::createViewActions()
     IO::Path("Controls/Map view/Duplicate and move objects backward; Duplicate and move "
              "objects up"),
     QObject::tr("Duplicate and Move Up"),
-    ActionContext::AnyView | ActionContext::NodeSelection,
+    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::Key_PageUp),
     [](ActionExecutionContext& context) {
       context.view()->duplicateAndMoveObjects(vm::direction::up);
@@ -565,7 +564,7 @@ void ActionManager::createViewActions()
     IO::Path("Controls/Map view/Duplicate and move objects forward; Duplicate and move "
              "objects down"),
     QObject::tr("Duplicate and Move Down"),
-    ActionContext::AnyView | ActionContext::NodeSelection,
+    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::Key_PageDown),
     [](ActionExecutionContext& context) {
       context.view()->duplicateAndMoveObjects(vm::direction::down);
@@ -577,7 +576,8 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Roll objects clockwise"),
     QObject::tr("Roll Clockwise"),
-    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::RotateTool,
+    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::RotateTool
+      | ActionContext::NoTool,
     QKeySequence(Qt::ALT + Qt::Key_Up),
     [](ActionExecutionContext& context) {
       context.view()->rotateObjects(vm::rotation_axis::roll, true);
@@ -586,7 +586,8 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Roll objects counter-clockwise"),
     QObject::tr("Roll Counter-clockwise"),
-    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::RotateTool,
+    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::RotateTool
+      | ActionContext::NoTool,
     QKeySequence(Qt::ALT + Qt::Key_Down),
     [](ActionExecutionContext& context) {
       context.view()->rotateObjects(vm::rotation_axis::roll, false);
@@ -595,7 +596,8 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Yaw objects clockwise"),
     QObject::tr("Yaw Clockwise"),
-    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::RotateTool,
+    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::RotateTool
+      | ActionContext::NoTool,
     QKeySequence(Qt::ALT + Qt::Key_Left),
     [](ActionExecutionContext& context) {
       context.view()->rotateObjects(vm::rotation_axis::yaw, true);
@@ -604,7 +606,8 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Yaw objects counter-clockwise"),
     QObject::tr("Yaw Counter-clockwise"),
-    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::RotateTool,
+    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::RotateTool
+      | ActionContext::NoTool,
     QKeySequence(Qt::ALT + Qt::Key_Right),
     [](ActionExecutionContext& context) {
       context.view()->rotateObjects(vm::rotation_axis::yaw, false);
@@ -613,7 +616,8 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Pitch objects clockwise"),
     QObject::tr("Pitch Clockwise"),
-    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::RotateTool,
+    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::RotateTool
+      | ActionContext::NoTool,
     QKeySequence(Qt::ALT + Qt::Key_PageUp),
     [](ActionExecutionContext& context) {
       context.view()->rotateObjects(vm::rotation_axis::pitch, true);
@@ -622,7 +626,8 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Pitch objects counter-clockwise"),
     QObject::tr("Pitch Counter-clockwise"),
-    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::RotateTool,
+    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::RotateTool
+      | ActionContext::NoTool,
     QKeySequence(Qt::ALT + Qt::Key_PageDown),
     [](ActionExecutionContext& context) {
       context.view()->rotateObjects(vm::rotation_axis::pitch, false);
@@ -633,7 +638,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Move textures up"),
     QObject::tr("Move Textures Up"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::Key_Up),
     [](ActionExecutionContext& context) {
       context.view()->moveTextures(
@@ -643,7 +648,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Move textures up (coarse)"),
     QObject::tr("Move Textures Up (Coarse)"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::SHIFT + Qt::Key_Up),
     [](ActionExecutionContext& context) {
       context.view()->moveTextures(
@@ -653,7 +658,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Move textures up (fine)"),
     QObject::tr("Move Textures Up (Fine)"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::Key_Up),
     [](ActionExecutionContext& context) {
       context.view()->moveTextures(
@@ -663,7 +668,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Move textures down"),
     QObject::tr("Move Textures Down"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::Key_Down),
     [](ActionExecutionContext& context) {
       context.view()->moveTextures(
@@ -673,7 +678,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Move textures down (coarse)"),
     QObject::tr("Move Textures Down (Coarse)"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::SHIFT + Qt::Key_Down),
     [](ActionExecutionContext& context) {
       context.view()->moveTextures(
@@ -683,7 +688,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Move textures down (fine)"),
     QObject::tr("Move Textures Down (Fine)"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::Key_Down),
     [](ActionExecutionContext& context) {
       context.view()->moveTextures(
@@ -693,7 +698,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Move textures left"),
     QObject::tr("Move Textures Left"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::Key_Left),
     [](ActionExecutionContext& context) {
       context.view()->moveTextures(
@@ -703,7 +708,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Move textures left (coarse)"),
     QObject::tr("Move Textures Left (Coarse)"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::SHIFT + Qt::Key_Left),
     [](ActionExecutionContext& context) {
       context.view()->moveTextures(
@@ -713,7 +718,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Move textures left (fine)"),
     QObject::tr("Move Textures Left (Fine)"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::Key_Left),
     [](ActionExecutionContext& context) {
       context.view()->moveTextures(
@@ -723,7 +728,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Move textures right"),
     QObject::tr("Move Textures Right"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::Key_Right),
     [](ActionExecutionContext& context) {
       context.view()->moveTextures(
@@ -733,7 +738,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Move textures right (coarse)"),
     QObject::tr("Move Textures Right (Coarse)"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::SHIFT + Qt::Key_Right),
     [](ActionExecutionContext& context) {
       context.view()->moveTextures(
@@ -743,7 +748,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Move textures right (fine)"),
     QObject::tr("Move Textures Right (Fine)"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::Key_Right),
     [](ActionExecutionContext& context) {
       context.view()->moveTextures(
@@ -753,7 +758,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Rotate textures clockwise"),
     QObject::tr("Rotate Textures Clockwise"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::Key_PageUp),
     [](ActionExecutionContext& context) {
       context.view()->rotateTextures(true, MapViewBase::TextureActionMode::Normal);
@@ -762,7 +767,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Rotate textures clockwise (coarse)"),
     QObject::tr("Rotate Textures Clockwise (Coarse)"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::SHIFT + Qt::Key_PageUp),
     [](ActionExecutionContext& context) {
       context.view()->rotateTextures(true, MapViewBase::TextureActionMode::Coarse);
@@ -771,7 +776,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Rotate textures clockwise (fine)"),
     QObject::tr("Rotate Textures Clockwise (Fine)"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::Key_PageUp),
     [](ActionExecutionContext& context) {
       context.view()->rotateTextures(true, MapViewBase::TextureActionMode::Fine);
@@ -780,7 +785,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Rotate textures counter-clockwise"),
     QObject::tr("Rotate Textures Counter-clockwise"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::Key_PageDown),
     [](ActionExecutionContext& context) {
       context.view()->rotateTextures(false, MapViewBase::TextureActionMode::Normal);
@@ -789,7 +794,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Rotate textures counter-clockwise (coarse)"),
     QObject::tr("Rotate Textures Counter-clockwise (Coarse)"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::SHIFT + Qt::Key_PageDown),
     [](ActionExecutionContext& context) {
       context.view()->rotateTextures(false, MapViewBase::TextureActionMode::Coarse);
@@ -798,7 +803,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Rotate textures counter-clockwise (fine)"),
     QObject::tr("Rotate Textures Counter-clockwise (Fine)"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::Key_PageDown),
     [](ActionExecutionContext& context) {
       context.view()->rotateTextures(false, MapViewBase::TextureActionMode::Fine);
@@ -807,14 +812,14 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Reveal in texture browser"),
     QObject::tr("Reveal in texture browser"),
-    ActionContext::View3D | ActionContext::AnySelection,
+    ActionContext::View3D | ActionContext::AnySelection | ActionContext::AnyOrNoTool,
     QKeySequence(),
     [](ActionExecutionContext& context) { context.frame()->revealTexture(); },
     [](ActionExecutionContext& context) { return context.hasDocument(); });
   createAction(
     IO::Path("Controls/Map view/Flip textures horizontally"),
     QObject::tr("Flip textures horizontally"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::Key_F),
     [](ActionExecutionContext& context) {
       context.view()->flipTextures(vm::direction::right);
@@ -823,7 +828,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Flip textures vertically"),
     QObject::tr("Flip textures vertically"),
-    ActionContext::View3D | ActionContext::FaceSelection,
+    ActionContext::View3D | ActionContext::FaceSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_F),
     [](ActionExecutionContext& context) {
       context.view()->flipTextures(vm::direction::up);
@@ -832,14 +837,14 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Reset texture alignment"),
     QObject::tr("Reset texture alignment"),
-    ActionContext::View3D | ActionContext::AnyTool | ActionContext::AnySelection,
+    ActionContext::AnyView | ActionContext::AnySelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::SHIFT + Qt::Key_R),
     [](ActionExecutionContext& context) { context.view()->resetTextures(); },
     [](ActionExecutionContext& context) { return context.hasDocument(); });
   createAction(
     IO::Path("Controls/Map view/Reset texture alignment to world aligned"),
     QObject::tr("Reset texture alignment to world aligned"),
-    ActionContext::View3D | ActionContext::AnyTool | ActionContext::AnySelection,
+    ActionContext::AnyView | ActionContext::AnySelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::SHIFT + Qt::ALT + Qt::Key_R),
     [](ActionExecutionContext& context) { context.view()->resetTexturesToWorld(); },
     [](ActionExecutionContext& context) { return context.hasDocument(); });
@@ -848,7 +853,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Make structural"),
     QObject::tr("Make Structural"),
-    ActionContext::AnyView | ActionContext::NodeSelection,
+    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::ALT + Qt::Key_S),
     [](ActionExecutionContext& context) { context.view()->makeStructural(); },
     [](ActionExecutionContext& context) { return context.hasDocument(); });
@@ -995,7 +1000,7 @@ void ActionManager::createViewActions()
   createAction(
     IO::Path("Controls/Map view/Reset camera zoom"),
     QObject::tr("Reset Camera Zoom"),
-    ActionContext::View3D | ActionContext::AnyTool | ActionContext::AnySelection,
+    ActionContext::View3D | ActionContext::AnyOrNoTool | ActionContext::AnyOrNoSelection,
     QKeySequence(Qt::SHIFT + Qt::Key_Escape),
     [](ActionExecutionContext& context) { context.view()->resetCameraZoom(); },
     [](ActionExecutionContext& context) { return context.hasDocument(); });
@@ -1383,7 +1388,7 @@ void ActionManager::createEditMenu()
   editMenu.addItem(createAction(
     IO::Path("Controls/Map view/Flip objects horizontally"),
     QObject::tr("Flip Horizontally"),
-    ActionContext::AnyView | ActionContext::NodeSelection,
+    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::Key_F),
     [](ActionExecutionContext& context) {
       context.view()->flipObjects(vm::direction::left);
@@ -1395,7 +1400,7 @@ void ActionManager::createEditMenu()
   editMenu.addItem(createAction(
     IO::Path("Controls/Map view/Flip objects vertically"),
     QObject::tr("Flip Vertically"),
-    ActionContext::AnyView | ActionContext::NodeSelection,
+    ActionContext::AnyView | ActionContext::NodeSelection | ActionContext::AnyOrNoTool,
     QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_F),
     [](ActionExecutionContext& context) {
       context.view()->flipObjects(vm::direction::up);
@@ -1972,8 +1977,8 @@ void ActionManager::createHelpMenu()
     },
     [](ActionExecutionContext&) { return true; }));
   helpMenu.addItem(createMenuAction(
-    IO::Path("Menu/File/About TrenchBroomBFG"),
-    QObject::tr("About TrenchBroomBFG"),
+    IO::Path("Menu/File/About TrenchBroom"),
+    QObject::tr("About TrenchBroom"),
     0,
     [](ActionExecutionContext&) {
       auto& app = TrenchBroomApp::instance();

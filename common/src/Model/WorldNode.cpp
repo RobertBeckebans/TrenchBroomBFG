@@ -26,11 +26,11 @@
 #include "Model/EntityNode.h"
 #include "Model/EntityNodeIndex.h"
 #include "Model/GroupNode.h"
-#include "Model/IssueGenerator.h"
-#include "Model/IssueGeneratorRegistry.h"
 #include "Model/LayerNode.h"
 #include "Model/PatchNode.h"
 #include "Model/TagVisitor.h"
+#include "Model/Validator.h"
+#include "Model/ValidatorRegistry.h"
 
 #include <kdl/overload.h>
 #include <kdl/result.h>
@@ -52,7 +52,7 @@ WorldNode::WorldNode(
   , m_mapFormat(mapFormat)
   , m_defaultLayer(nullptr)
   , m_entityNodeIndex(std::make_unique<EntityNodeIndex>())
-  , m_issueGeneratorRegistry(std::make_unique<IssueGeneratorRegistry>())
+  , m_validatorRegistry(std::make_unique<ValidatorRegistry>())
   , m_nodeTree(std::make_unique<NodeTree>())
   , m_updateNodeTree(true)
 {
@@ -182,25 +182,25 @@ const EntityNodeIndex& WorldNode::entityNodeIndex() const
   return *m_entityNodeIndex;
 }
 
-const std::vector<IssueGenerator*>& WorldNode::registeredIssueGenerators() const
+std::vector<const Validator*> WorldNode::registeredValidators() const
 {
-  return m_issueGeneratorRegistry->registeredGenerators();
+  return m_validatorRegistry->registeredValidators();
 }
 
-std::vector<IssueQuickFix*> WorldNode::quickFixes(const IssueType issueTypes) const
+std::vector<const IssueQuickFix*> WorldNode::quickFixes(const IssueType issueTypes) const
 {
-  return m_issueGeneratorRegistry->quickFixes(issueTypes);
+  return m_validatorRegistry->quickFixes(issueTypes);
 }
 
-void WorldNode::registerIssueGenerator(IssueGenerator* issueGenerator)
+void WorldNode::registerValidator(std::unique_ptr<Validator> validator)
 {
-  m_issueGeneratorRegistry->registerGenerator(issueGenerator);
+  m_validatorRegistry->registerValidator(std::move(validator));
   invalidateAllIssues();
 }
 
-void WorldNode::unregisterAllIssueGenerators()
+void WorldNode::unregisterAllValidators()
 {
-  m_issueGeneratorRegistry->unregisterAllGenerators();
+  m_validatorRegistry->unregisterAllValidators();
   invalidateAllIssues();
 }
 
@@ -452,13 +452,8 @@ void WorldNode::doFindNodesContaining(const vm::vec3& point, std::vector<Node*>&
   }
 }
 
-void WorldNode::doGenerateIssues(
-  const IssueGenerator* generator, std::vector<Issue*>& issues)
-{
-  generator->generate(this, issues);
-}
-
 void WorldNode::doAccept(NodeVisitor& visitor)
+{
 {
   visitor.visit(this);
 }
