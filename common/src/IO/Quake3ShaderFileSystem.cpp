@@ -64,8 +64,7 @@ std::vector<Assets::Quake3Shader> Quake3ShaderFileSystem::loadShaders() const
 
   if (next().directoryExists(m_shaderSearchPath))
   {
-    const auto paths =
-      next().findItems(m_shaderSearchPath, FileExtensionMatcher("shader"));
+    auto paths = next().findItems(m_shaderSearchPath, FileExtensionMatcher("shader"));
     for (const auto& path : paths)
     {
       const auto file = next().openFile(path);

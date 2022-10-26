@@ -470,6 +470,7 @@ void AssimpParser::processMaterials(const aiScene& scene, Logger& logger)
         + materialName + ": " + exception.what());
     }
   }
+#endif
 }
 
 aiMatrix4x4 AssimpParser::get_axis_transform(const aiScene& scene)

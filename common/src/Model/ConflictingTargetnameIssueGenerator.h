@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "Model/IssueGenerator.h"
+#include "Model/Validator.h"
 
 #include <vector>
 
@@ -31,7 +31,7 @@ namespace Model
 // Helper issue generator for Doom 3 because Doom doesn't allow entities with the same
 // (target)name Also Doom 3 does not call it targetname anymore. It's just name and every
 // is supposed to have a unique name
-class ConflictingTargetnameIssueGenerator : public IssueGenerator
+class ConflictingTargetnameIssueGenerator : public Validator
 {
 private:
   class ConflictingTargetnameIssue;
@@ -41,7 +41,8 @@ public:
   ConflictingTargetnameIssueGenerator();
 
 private:
-  void doGenerate(EntityNodeBase* node, IssueList& issues) const override;
+  void doValidate(EntityNodeBase& entityNode, std::vector<std::unique_ptr<Issue>>& issues)
+    const override;
 };
 } // namespace Model
 } // namespace TrenchBroom

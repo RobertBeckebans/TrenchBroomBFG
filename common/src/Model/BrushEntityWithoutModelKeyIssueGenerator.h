@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "Model/IssueGenerator.h"
+#include "Model/Validator.h"
 
 #include <vector>
 
@@ -31,17 +31,18 @@ namespace Model
 
 // Doom 3 requires all brush based entities to have a "model" key which is the same as the
 // "name" key
-class BrushEntityWithoutModelKeyIssueGenerator : public IssueGenerator
+class BrushEntityWithoutModelKeyValidator : public Validator
 {
 private:
   class BrushEntityWithoutModelKeyIssue;
   class BrushEntityWithoutModelKeyIssueQuickFix;
 
 public:
-  BrushEntityWithoutModelKeyIssueGenerator();
+  BrushEntityWithoutModelKeyValidator();
 
 private:
-  void doGenerate(EntityNode* entityNode, IssueList& issues) const override;
+  void doValidate(EntityNodeBase& entityNode, std::vector<std::unique_ptr<Issue>>& issues)
+    const override;
 };
 } // namespace Model
 } // namespace TrenchBroom

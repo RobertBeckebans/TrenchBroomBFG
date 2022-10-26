@@ -35,11 +35,12 @@
 #include <map>
 #include <vector>
 
+#if 0
 namespace TrenchBroom
 {
 namespace Model
 {
-class BrushEntityWithoutModelKeyIssueGenerator::BrushEntityWithoutModelKeyIssue
+class BrushEntityWithoutModelKeyValidator::BrushEntityWithoutModelKeyIssue
   : public Issue
 {
 public:
@@ -129,3 +130,5 @@ void BrushEntityWithoutModelKeyIssueGenerator::doGenerate(
 }
 } // namespace Model
 } // namespace TrenchBroom
+
+#endif

@@ -4790,8 +4790,9 @@ void MapDocument::registerValidators()
   // m_world->registerIssueGenerator(new Model::LinkSourceIssueGenerator());
 
   // Doom 3 specific: check that each entity has a unique name
-  m_world->registerValidator(new Model::ConflictingTargetnameIssueGenerator());
-  m_world->registerValidator(new Model::BrushEntityWithoutModelKeyIssueGenerator());
+  // FIXME m_world->registerValidator(new Model::ConflictingTargetnameIssueGenerator());
+  // FIXME m_world->registerValidator(new
+  // Model::BrushEntityWithoutModelKeyIssueGenerator());
 
   m_world->registerValidator(std::make_unique<Model::EmptyPropertyKeyValidator>());
   // m_world->registerValidator(std::make_unique<Model::EmptyPropertyValueValidator>());

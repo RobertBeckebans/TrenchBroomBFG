@@ -30,6 +30,8 @@
 
 #include <string>
 
+#if 0
+
 namespace TrenchBroom
 {
 namespace Model
@@ -99,3 +101,5 @@ void ConflictingTargetnameIssueGenerator::doGenerate(
 }
 } // namespace Model
 } // namespace TrenchBroom
+
+#endif
