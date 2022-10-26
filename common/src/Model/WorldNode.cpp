@@ -454,7 +454,6 @@ void WorldNode::doFindNodesContaining(const vm::vec3& point, std::vector<Node*>&
 
 void WorldNode::doAccept(NodeVisitor& visitor)
 {
-{
   visitor.visit(this);
 }
 

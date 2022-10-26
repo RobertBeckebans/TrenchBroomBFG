@@ -562,7 +562,6 @@ void GroupNode::doFindNodesContaining(const vm::vec3& point, std::vector<Node*>&
 
 void GroupNode::doAccept(NodeVisitor& visitor)
 {
-{
   visitor.visit(this);
 }
 

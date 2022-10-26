@@ -27,9 +27,6 @@
 #include "Model/MapFacade.h"
 
 #include <vector>
-{
-class TransformEntityPropertiesQuickFix : public IssueQuickFix
-{
 
 namespace TrenchBroom
 {

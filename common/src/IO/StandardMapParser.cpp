@@ -336,849 +336,848 @@ void StandardMapParser::parseBrushOrBrushPrimitiveOrPatch(ParserStatus& status)
       if (token.data() == BrushPrimitiveId)
       {
         parseBrushPrimitive(status, startLine);
-      else
-      {
-      }
-      else if (token.data() == PatchId3)
-      {
-        parseDoom3Patch3(status, startLine);
+        else {}
+        else if (token.data() == PatchId3) { parseDoom3Patch3(status, startLine); }
+        else { parseDoom3Patch2(status, startLine); }
       }
       else
       {
-        parseDoom3Patch2(status, startLine);
+        parseBrush(status, startLine, false);
       }
     }
-    else
+    else if (
+      m_sourceMapFormat == Model::MapFormat::Quake3_Valve
+      || m_sourceMapFormat == Model::MapFormat::Quake3_Legacy)
     {
-      parseBrush(status, startLine, false);
-    }
-  }
-  else if (
-    m_sourceMapFormat == Model::MapFormat::Quake3_Valve
-    || m_sourceMapFormat == Model::MapFormat::Quake3_Legacy)
-  {
-    // We expect either a patch or a regular brush.
-    expect(QuakeMapToken::String | QuakeMapToken::OParenthesis, token);
-    if (token.hasType(QuakeMapToken::String))
-    {
-      expect(PatchId2, token);
-      parseQuake3Patch(status, startLine);
-    }
-    else
-    {
-      parseBrush(status, startLine, false);
-    }
-  }
-  else if (m_sourceMapFormat == Model::MapFormat::Doom3_Valve)
-  {
-    // We expect either a patch or a regular brush.
-    expect(QuakeMapToken::String | QuakeMapToken::OParenthesis, token);
-    if (token.hasType(QuakeMapToken::String))
-    {
-      expect(std::vector<std::string>({PatchId2, PatchId3}), token);
-      if (token.data() == PatchId3)
+      // We expect either a patch or a regular brush.
+      expect(QuakeMapToken::String | QuakeMapToken::OParenthesis, token);
+      if (token.hasType(QuakeMapToken::String))
       {
-        parseDoom3Patch3(status, startLine);
+        expect(PatchId2, token);
+        parseQuake3Patch(status, startLine);
       }
       else
       {
-        parseDoom3Patch2(status, startLine);
+        parseBrush(status, startLine, false);
       }
     }
-    else
+    else if (m_sourceMapFormat == Model::MapFormat::Doom3_Valve)
     {
-      parseBrush(status, startLine, false);
-    }
-  }
-  else
-  {
-    expect(QuakeMapToken::OParenthesis, token);
-    parseBrush(status, startLine, false);
-  }
-
-  // consume final closing brace
-  expect(QuakeMapToken::CBrace, m_tokenizer.nextToken());
-}
-
-void StandardMapParser::parseBrushPrimitive(ParserStatus& status, const size_t startLine)
-{
-  auto token = expect(QuakeMapToken::String, m_tokenizer.nextToken());
-  expect(BrushPrimitiveId, token);
-  expect(QuakeMapToken::OBrace, m_tokenizer.nextToken());
-  parseBrush(status, startLine, true);
-  expect(QuakeMapToken::CBrace, m_tokenizer.nextToken());
-}
-
-void StandardMapParser::parseBrush(
-  ParserStatus& status, const size_t startLine, const bool primitive)
-{
-  auto beginBrushCalled = false;
-
-  auto token = m_tokenizer.peekToken();
-  while (!token.hasType(QuakeMapToken::Eof))
-  {
-    switch (token.type())
-    {
-    case QuakeMapToken::Comment:
-      m_tokenizer.nextToken();
-      break;
-    case QuakeMapToken::OParenthesis:
-      // TODO 2427: handle brush primitives
-      if (!beginBrushCalled /*&& !primitive*/)
+      // We expect either a patch or a regular brush.
+      expect(QuakeMapToken::String | QuakeMapToken::OParenthesis, token);
+      if (token.hasType(QuakeMapToken::String))
       {
-        onBeginBrush(startLine, status);
-        beginBrushCalled = true;
-      }
-      parseFace(status, primitive);
-      break;
-    case QuakeMapToken::CBrace:
-      if (!primitive)
-      {
-        if (!beginBrushCalled)
+        expect(std::vector<std::string>({PatchId2, PatchId3}), token);
+        if (token.data() == PatchId3)
         {
+          parseDoom3Patch3(status, startLine);
+        }
+        else
+        {
+          parseDoom3Patch2(status, startLine);
+        }
+      }
+      else
+      {
+        parseBrush(status, startLine, false);
+      }
+    }
+    else
+    {
+      expect(QuakeMapToken::OParenthesis, token);
+      parseBrush(status, startLine, false);
+    }
+
+    // consume final closing brace
+    expect(QuakeMapToken::CBrace, m_tokenizer.nextToken());
+  }
+
+  void StandardMapParser::parseBrushPrimitive(
+    ParserStatus & status, const size_t startLine)
+  {
+    auto token = expect(QuakeMapToken::String, m_tokenizer.nextToken());
+    expect(BrushPrimitiveId, token);
+    expect(QuakeMapToken::OBrace, m_tokenizer.nextToken());
+    parseBrush(status, startLine, true);
+    expect(QuakeMapToken::CBrace, m_tokenizer.nextToken());
+  }
+
+  void StandardMapParser::parseBrush(
+    ParserStatus & status, const size_t startLine, const bool primitive)
+  {
+    auto beginBrushCalled = false;
+
+    auto token = m_tokenizer.peekToken();
+    while (!token.hasType(QuakeMapToken::Eof))
+    {
+      switch (token.type())
+      {
+      case QuakeMapToken::Comment:
+        m_tokenizer.nextToken();
+        break;
+      case QuakeMapToken::OParenthesis:
+        // TODO 2427: handle brush primitives
+        if (!beginBrushCalled /*&& !primitive*/)
         {
           onBeginBrush(startLine, status);
+          beginBrushCalled = true;
         }
-        onEndBrush(startLine, token.line() - startLine, status);
+        parseFace(status, primitive);
+        break;
+      case QuakeMapToken::CBrace:
+        if (!primitive)
+        {
+          if (!beginBrushCalled)
+          {
+            {
+              onBeginBrush(startLine, status);
+            }
+            onEndBrush(startLine, token.line() - startLine, status);
+          }
+          else
+          {
+            onEndBrush(startLine, token.line() - startLine, status);
+          }
+          return;
+        default: {
+          expect(QuakeMapToken::OParenthesis | QuakeMapToken::CParenthesis, token);
+        }
+        }
+
+        token = m_tokenizer.peekToken();
       }
-      else
+    }
+
+    void StandardMapParser::parseFace(ParserStatus & status, const bool primitive)
+    {
+      switch (m_sourceMapFormat)
       {
-        onEndBrush(startLine, token.line() - startLine, status);
+      case Model::MapFormat::Standard:
+        parseQuakeFace(status);
+        break;
+      case Model::MapFormat::Quake2:
+      case Model::MapFormat::Quake3_Legacy:
+        parseQuake2Face(status);
+        break;
+      case Model::MapFormat::Quake2_Valve:
+      case Model::MapFormat::Quake3_Valve:
+      case Model::MapFormat::Doom3_Valve:
+        parseQuake2ValveFace(status);
+        break;
+      case Model::MapFormat::Hexen2:
+        parseHexen2Face(status);
+        break;
+      case Model::MapFormat::Daikatana:
+        parseDaikatanaFace(status);
+        break;
+      case Model::MapFormat::Valve:
+        parseValveFace(status);
+        break;
+      case Model::MapFormat::Quake3:
+        if (primitive)
+        {
+          parsePrimitiveFace(status);
+        }
+        else
+        {
+          parseQuake2Face(status);
+        }
+        break;
+      case Model::MapFormat::Doom3:
+        parseDoom3PrimitiveFace(status);
+        break;
+      case Model::MapFormat::Unknown:
+        // cannot happen
+        break;
+        switchDefault();
       }
-      return;
-    default: {
-      expect(QuakeMapToken::OParenthesis | QuakeMapToken::CParenthesis, token);
-    }
     }
 
-    token = m_tokenizer.peekToken();
-  }
-}
-
-void StandardMapParser::parseFace(ParserStatus& status, const bool primitive)
-{
-  switch (m_sourceMapFormat)
-  {
-  case Model::MapFormat::Standard:
-    parseQuakeFace(status);
-    break;
-  case Model::MapFormat::Quake2:
-  case Model::MapFormat::Quake3_Legacy:
-    parseQuake2Face(status);
-    break;
-  case Model::MapFormat::Quake2_Valve:
-  case Model::MapFormat::Quake3_Valve:
-  case Model::MapFormat::Doom3_Valve:
-    parseQuake2ValveFace(status);
-    break;
-  case Model::MapFormat::Hexen2:
-    parseHexen2Face(status);
-    break;
-  case Model::MapFormat::Daikatana:
-    parseDaikatanaFace(status);
-    break;
-  case Model::MapFormat::Valve:
-    parseValveFace(status);
-    break;
-  case Model::MapFormat::Quake3:
-    if (primitive)
+    void StandardMapParser::parseQuakeFace(ParserStatus & status)
     {
-      parsePrimitiveFace(status);
+      const auto line = m_tokenizer.line();
+
+      const auto [p1, p2, p3] = parseFacePoints(status);
+      const auto textureName = parseTextureName(status);
+
+      auto attribs = Model::BrushFaceAttributes(textureName);
+      attribs.setXOffset(parseFloat());
+      attribs.setYOffset(parseFloat());
+      attribs.setRotation(parseFloat());
+      attribs.setXScale(parseFloat());
+      attribs.setYScale(parseFloat());
+
+      onStandardBrushFace(line, m_targetMapFormat, p1, p2, p3, attribs, status);
     }
-    else
+
+    void StandardMapParser::parseQuake2Face(ParserStatus & status)
     {
-      parseQuake2Face(status);
+      const auto line = m_tokenizer.line();
+
+      const auto [p1, p2, p3] = parseFacePoints(status);
+      const auto textureName = parseTextureName(status);
+
+      auto attribs = Model::BrushFaceAttributes(textureName);
+      attribs.setXOffset(parseFloat());
+      attribs.setYOffset(parseFloat());
+      attribs.setRotation(parseFloat());
+      attribs.setXScale(parseFloat());
+      attribs.setYScale(parseFloat());
+
+      // Quake 2 extra info is optional
+      if (!check(
+            QuakeMapToken::OParenthesis | QuakeMapToken::CBrace | QuakeMapToken::Eof,
+            m_tokenizer.peekToken()))
+      {
+        attribs.setSurfaceContents(parseInteger());
+        attribs.setSurfaceFlags(parseInteger());
+        attribs.setSurfaceValue(parseFloat());
+      }
+
+      onStandardBrushFace(line, m_targetMapFormat, p1, p2, p3, attribs, status);
     }
-    break;
-  case Model::MapFormat::Doom3:
-    parseDoom3PrimitiveFace(status);
-    break;
-  case Model::MapFormat::Unknown:
-    // cannot happen
-    break;
-    switchDefault();
-  }
-}
 
-void StandardMapParser::parseQuakeFace(ParserStatus& status)
-{
-  const auto line = m_tokenizer.line();
-
-  const auto [p1, p2, p3] = parseFacePoints(status);
-  const auto textureName = parseTextureName(status);
-
-  auto attribs = Model::BrushFaceAttributes(textureName);
-  attribs.setXOffset(parseFloat());
-  attribs.setYOffset(parseFloat());
-  attribs.setRotation(parseFloat());
-  attribs.setXScale(parseFloat());
-  attribs.setYScale(parseFloat());
-
-  onStandardBrushFace(line, m_targetMapFormat, p1, p2, p3, attribs, status);
-}
-
-void StandardMapParser::parseQuake2Face(ParserStatus& status)
-{
-  const auto line = m_tokenizer.line();
-
-  const auto [p1, p2, p3] = parseFacePoints(status);
-  const auto textureName = parseTextureName(status);
-
-  auto attribs = Model::BrushFaceAttributes(textureName);
-  attribs.setXOffset(parseFloat());
-  attribs.setYOffset(parseFloat());
-  attribs.setRotation(parseFloat());
-  attribs.setXScale(parseFloat());
-  attribs.setYScale(parseFloat());
-
-  // Quake 2 extra info is optional
-  if (!check(
-        QuakeMapToken::OParenthesis | QuakeMapToken::CBrace | QuakeMapToken::Eof,
-        m_tokenizer.peekToken()))
-  {
-    attribs.setSurfaceContents(parseInteger());
-    attribs.setSurfaceFlags(parseInteger());
-    attribs.setSurfaceValue(parseFloat());
-  }
-
-  onStandardBrushFace(line, m_targetMapFormat, p1, p2, p3, attribs, status);
-}
-
-void StandardMapParser::parseQuake2ValveFace(ParserStatus& status)
-{
-  const auto line = m_tokenizer.line();
-
-  const auto [p1, p2, p3] = parseFacePoints(status);
-  const auto textureName = parseTextureName(status);
-
-  const auto [texX, xOffset, texY, yOffset] = parseValveTextureAxes(status);
-
-  auto attribs = Model::BrushFaceAttributes(textureName);
-  attribs.setXOffset(xOffset);
-  attribs.setYOffset(yOffset);
-  attribs.setRotation(parseFloat());
-  attribs.setXScale(parseFloat());
-  attribs.setYScale(parseFloat());
-
-  // Quake 2 extra info is optional
-  if (!check(
-        QuakeMapToken::OParenthesis | QuakeMapToken::CBrace | QuakeMapToken::Eof,
-        m_tokenizer.peekToken()))
-  {
-    attribs.setSurfaceContents(parseInteger());
-    attribs.setSurfaceFlags(parseInteger());
-    attribs.setSurfaceValue(parseFloat());
-  }
-
-  onValveBrushFace(line, m_targetMapFormat, p1, p2, p3, attribs, texX, texY, status);
-}
-
-void StandardMapParser::parseHexen2Face(ParserStatus& status)
-{
-  const auto line = m_tokenizer.line();
-
-  const auto [p1, p2, p3] = parseFacePoints(status);
-  const auto textureName = parseTextureName(status);
-
-  auto attribs = Model::BrushFaceAttributes(textureName);
-  attribs.setXOffset(parseFloat());
-  attribs.setYOffset(parseFloat());
-  attribs.setRotation(parseFloat());
-  attribs.setXScale(parseFloat());
-  attribs.setYScale(parseFloat());
-
-  // Hexen 2 extra info is optional
-  if (!check(
-        QuakeMapToken::OParenthesis | QuakeMapToken::CBrace | QuakeMapToken::Eof,
-        m_tokenizer.peekToken()))
-  {
-    m_tokenizer.nextToken(); // noone seems to know what the extra value does in Hexen 2
-  }
-
-  onStandardBrushFace(line, m_targetMapFormat, p1, p2, p3, attribs, status);
-}
-
-void StandardMapParser::parseDaikatanaFace(ParserStatus& status)
-{
-  const auto line = m_tokenizer.line();
-
-  const auto [p1, p2, p3] = parseFacePoints(status);
-  const auto textureName = parseTextureName(status);
-
-  auto attribs = Model::BrushFaceAttributes(textureName);
-  attribs.setXOffset(parseFloat());
-  attribs.setYOffset(parseFloat());
-  attribs.setRotation(parseFloat());
-  attribs.setXScale(parseFloat());
-  attribs.setYScale(parseFloat());
-
-  // Daikatana extra info is optional
-  if (check(QuakeMapToken::Integer, m_tokenizer.peekToken()))
-  {
-    attribs.setSurfaceContents(parseInteger());
-    attribs.setSurfaceFlags(parseInteger());
-    attribs.setSurfaceValue(parseFloat());
-
-    // Daikatana color triple is optional
-    if (check(QuakeMapToken::Integer, m_tokenizer.peekToken()))
+    void StandardMapParser::parseQuake2ValveFace(ParserStatus & status)
     {
-      // red, green, blue
-      attribs.setColor(Color(parseInteger(), parseInteger(), parseInteger()));
+      const auto line = m_tokenizer.line();
+
+      const auto [p1, p2, p3] = parseFacePoints(status);
+      const auto textureName = parseTextureName(status);
+
+      const auto [texX, xOffset, texY, yOffset] = parseValveTextureAxes(status);
+
+      auto attribs = Model::BrushFaceAttributes(textureName);
+      attribs.setXOffset(xOffset);
+      attribs.setYOffset(yOffset);
+      attribs.setRotation(parseFloat());
+      attribs.setXScale(parseFloat());
+      attribs.setYScale(parseFloat());
+
+      // Quake 2 extra info is optional
+      if (!check(
+            QuakeMapToken::OParenthesis | QuakeMapToken::CBrace | QuakeMapToken::Eof,
+            m_tokenizer.peekToken()))
+      {
+        attribs.setSurfaceContents(parseInteger());
+        attribs.setSurfaceFlags(parseInteger());
+        attribs.setSurfaceValue(parseFloat());
+      }
+
+      onValveBrushFace(line, m_targetMapFormat, p1, p2, p3, attribs, texX, texY, status);
     }
-  }
 
-  onStandardBrushFace(line, m_targetMapFormat, p1, p2, p3, attribs, status);
-}
+    void StandardMapParser::parseHexen2Face(ParserStatus & status)
+    {
+      const auto line = m_tokenizer.line();
 
-void StandardMapParser::parseValveFace(ParserStatus& status)
-{
-  const auto line = m_tokenizer.line();
+      const auto [p1, p2, p3] = parseFacePoints(status);
+      const auto textureName = parseTextureName(status);
 
-  const auto [p1, p2, p3] = parseFacePoints(status);
-  const auto textureName = parseTextureName(status);
+      auto attribs = Model::BrushFaceAttributes(textureName);
+      attribs.setXOffset(parseFloat());
+      attribs.setYOffset(parseFloat());
+      attribs.setRotation(parseFloat());
+      attribs.setXScale(parseFloat());
+      attribs.setYScale(parseFloat());
 
-  const auto [texX, xOffset, texY, yOffset] = parseValveTextureAxes(status);
+      // Hexen 2 extra info is optional
+      if (!check(
+            QuakeMapToken::OParenthesis | QuakeMapToken::CBrace | QuakeMapToken::Eof,
+            m_tokenizer.peekToken()))
+      {
+        m_tokenizer
+          .nextToken(); // noone seems to know what the extra value does in Hexen 2
+      }
 
-  auto attribs = Model::BrushFaceAttributes(textureName);
-  attribs.setXOffset(xOffset);
-  attribs.setYOffset(yOffset);
-  attribs.setRotation(parseFloat());
-  attribs.setXScale(parseFloat());
-  attribs.setYScale(parseFloat());
+      onStandardBrushFace(line, m_targetMapFormat, p1, p2, p3, attribs, status);
+    }
 
-  onValveBrushFace(line, m_targetMapFormat, p1, p2, p3, attribs, texX, texY, status);
-}
+    void StandardMapParser::parseDaikatanaFace(ParserStatus & status)
+    {
+      const auto line = m_tokenizer.line();
 
-void StandardMapParser::parsePrimitiveFace(ParserStatus& status)
-{
-  /* const auto line = */ m_tokenizer.line();
+      const auto [p1, p2, p3] = parseFacePoints(status);
+      const auto textureName = parseTextureName(status);
 
-  /* const auto [p1, p2, p3] = */ parseFacePoints(status);
+      auto attribs = Model::BrushFaceAttributes(textureName);
+      attribs.setXOffset(parseFloat());
+      attribs.setYOffset(parseFloat());
+      attribs.setRotation(parseFloat());
+      attribs.setXScale(parseFloat());
+      attribs.setYScale(parseFloat());
 
-  expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
+      // Daikatana extra info is optional
+      if (check(QuakeMapToken::Integer, m_tokenizer.peekToken()))
+      {
+        attribs.setSurfaceContents(parseInteger());
+        attribs.setSurfaceFlags(parseInteger());
+        attribs.setSurfaceValue(parseFloat());
 
-  /* const auto [texX, texY] = */ parsePrimitiveTextureAxes(status);
-  expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
+        // Daikatana color triple is optional
+        if (check(QuakeMapToken::Integer, m_tokenizer.peekToken()))
+        {
+          // red, green, blue
+          attribs.setColor(Color(parseInteger(), parseInteger(), parseInteger()));
+        }
+      }
 
-  const auto textureName = parseTextureName(status);
+      onStandardBrushFace(line, m_targetMapFormat, p1, p2, p3, attribs, status);
+    }
 
-  // TODO 2427: what to set for offset, rotation, scale?!
-  auto attribs = Model::BrushFaceAttributes(textureName);
+    void StandardMapParser::parseValveFace(ParserStatus & status)
+    {
+      const auto line = m_tokenizer.line();
 
-  // Quake 2 extra info is optional
-  if (!check(
-        QuakeMapToken::OParenthesis | QuakeMapToken::CBrace | QuakeMapToken::Eof,
-        m_tokenizer.peekToken()))
-  {
-    attribs.setSurfaceContents(parseInteger());
-    attribs.setSurfaceFlags(parseInteger());
-    attribs.setSurfaceValue(parseFloat());
-  }
+      const auto [p1, p2, p3] = parseFacePoints(status);
+      const auto textureName = parseTextureName(status);
 
-  // TODO 2427: create a brush face
-  // brushFace(line, p1, p2, p3, attribs, texX, texY, status);
-}
+      const auto [texX, xOffset, texY, yOffset] = parseValveTextureAxes(status);
 
-inline bool bpDegenerate(const vm::vec3& bpTexMatX, const vm::vec3& bpTexMatY)
-{
-  // 2D cross product
-  return (bpTexMatX[0] * bpTexMatY[1] - bpTexMatX[1] * bpTexMatY[0]) == 0;
-}
+      auto attribs = Model::BrushFaceAttributes(textureName);
+      attribs.setXOffset(xOffset);
+      attribs.setYOffset(yOffset);
+      attribs.setRotation(parseFloat());
+      attribs.setXScale(parseFloat());
+      attribs.setYScale(parseFloat());
 
-void StandardMapParser::parseDoom3PrimitiveFace(ParserStatus& status)
-{
-  const auto line = m_tokenizer.line();
+      onValveBrushFace(line, m_targetMapFormat, p1, p2, p3, attribs, texX, texY, status);
+    }
 
-  // parse plane equation
-  const auto planeEq = correct(
-    parseFloatVector<4>(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis));
+    void StandardMapParser::parsePrimitiveFace(ParserStatus & status)
+    {
+      /* const auto line = */ m_tokenizer.line();
 
-  // create p1, p2, p3
-  auto forward = planeEq.xyz();
-  auto p1 = forward * -planeEq[3];
+      /* const auto [p1, p2, p3] = */ parseFacePoints(status);
 
-  // create tangents right,up similar as in Quake's MakeNormalVectors
-  auto right = forward;
-  right[1] = -forward[0];
-  right[2] = forward[1];
-  right[0] = forward[2];
+      expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
 
-  auto d = dot(right, forward);
-  right = right + (-d * forward);
-  right = normalize(right);
+      /* const auto [texX, texY] = */ parsePrimitiveTextureAxes(status);
+      expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
 
-  auto up = cross(right, forward);
+      const auto textureName = parseTextureName(status);
 
-  // offset p1 by tangents to have 3 points in a plane
-  auto p2 = p1 + right;
-  auto p3 = p1 + up;
+      // TODO 2427: what to set for offset, rotation, scale?!
+      auto attribs = Model::BrushFaceAttributes(textureName);
 
-  expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
+      // Quake 2 extra info is optional
+      if (!check(
+            QuakeMapToken::OParenthesis | QuakeMapToken::CBrace | QuakeMapToken::Eof,
+            m_tokenizer.peekToken()))
+      {
+        attribs.setSurfaceContents(parseInteger());
+        attribs.setSurfaceFlags(parseInteger());
+        attribs.setSurfaceValue(parseFloat());
+      }
 
-  const auto [bpTexMatX, bpTexMatY] = parsePrimitiveTextureAxes(status);
-  expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
+      // TODO 2427: create a brush face
+      // brushFace(line, p1, p2, p3, attribs, texX, texY, status);
+    }
 
-  const auto textureName = parseDoom3TextureName(status);
+    inline bool bpDegenerate(const vm::vec3& bpTexMatX, const vm::vec3& bpTexMatY)
+    {
+      // 2D cross product
+      return (bpTexMatX[0] * bpTexMatY[1] - bpTexMatX[1] * bpTexMatY[0]) == 0;
+    }
 
-  // TODO 2427: what to set for offset, rotation, scale?!
-  auto attribs = Model::BrushFaceAttributes(textureName);
+    void StandardMapParser::parseDoom3PrimitiveFace(ParserStatus & status)
+    {
+      const auto line = m_tokenizer.line();
 
-  vm::mat4x4f bpMatrix = vm::mat4x4f::identity();
+      // parse plane equation
+      const auto planeEq = correct(
+        parseFloatVector<4>(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis));
 
-  // copy rotation/scale part
-  bpMatrix[0][0] = static_cast<float>(bpTexMatX[0]);
-  bpMatrix[0][1] = static_cast<float>(bpTexMatX[1]);
-  bpMatrix[0][2] = static_cast<float>(bpTexMatX[2]);
+      // create p1, p2, p3
+      auto forward = planeEq.xyz();
+      auto p1 = forward * -planeEq[3];
 
-  bpMatrix[1][0] = static_cast<float>(bpTexMatY[0]);
-  bpMatrix[1][1] = static_cast<float>(bpTexMatY[1]);
-  bpMatrix[1][2] = static_cast<float>(bpTexMatY[2]);
+      // create tangents right,up similar as in Quake's MakeNormalVectors
+      auto right = forward;
+      right[1] = -forward[0];
+      right[2] = forward[1];
+      right[0] = forward[2];
 
-  // x,y offset
-  bpMatrix[3][0] = static_cast<float>(bpTexMatX[2]);
-  bpMatrix[3][1] = static_cast<float>(bpTexMatY[2]);
+      auto d = dot(right, forward);
+      right = right + (-d * forward);
+      right = normalize(right);
 
-  attribs.setBrushPrimitMatrix(bpMatrix);
+      auto up = cross(right, forward);
 
-  // from Valve220_from_BP by Netradiant-custom and same as in D3
-  // idMapBrushSide::GetTextureVectors
+      // offset p1 by tangents to have 3 points in a plane
+      auto p2 = p1 + right;
+      auto p3 = p1 + up;
 
-  vm::vec3 texX, texY;
-  Model::ParallelTexCoordSystem::computeInitialAxesBP(forward, texX, texY);
+      expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
 
-  vm::vec3 texAxisX = texX;
-  vm::vec3 texAxisY = texY;
+      const auto [bpTexMatX, bpTexMatY] = parsePrimitiveTextureAxes(status);
+      expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
 
-  if (!bpDegenerate(bpTexMatX, bpTexMatY))
-  {
+      const auto textureName = parseDoom3TextureName(status);
 
-    // rotate initial axes
-    // texAxisX = normalize(texX * bpTexMatX[0] + texY * bpTexMatX[1]);
-    // texAxisY = normalize(texY * bpTexMatY[0] + texY * bpTexMatY[1]);
+      // TODO 2427: what to set for offset, rotation, scale?!
+      auto attribs = Model::BrushFaceAttributes(textureName);
 
-    // from D3 TexMatToFakeTexCoords
-    // compute a fake shift scale rot representation from the texture matrix these shift
-    // scale rot values are to be understood in the local axis base
+      vm::mat4x4f bpMatrix = vm::mat4x4f::identity();
 
-    const double ZERO_EPSILON = 1.0E-6;
+      // copy rotation/scale part
+      bpMatrix[0][0] = static_cast<float>(bpTexMatX[0]);
+      bpMatrix[0][1] = static_cast<float>(bpTexMatX[1]);
+      bpMatrix[0][2] = static_cast<float>(bpTexMatX[2]);
+
+      bpMatrix[1][0] = static_cast<float>(bpTexMatY[0]);
+      bpMatrix[1][1] = static_cast<float>(bpTexMatY[1]);
+      bpMatrix[1][2] = static_cast<float>(bpTexMatY[2]);
+
+      // x,y offset
+      bpMatrix[3][0] = static_cast<float>(bpTexMatX[2]);
+      bpMatrix[3][1] = static_cast<float>(bpTexMatY[2]);
+
+      attribs.setBrushPrimitMatrix(bpMatrix);
+
+      // from Valve220_from_BP by Netradiant-custom and same as in D3
+      // idMapBrushSide::GetTextureVectors
+
+      vm::vec3 texX, texY;
+      Model::ParallelTexCoordSystem::computeInitialAxesBP(forward, texX, texY);
+
+      vm::vec3 texAxisX = texX;
+      vm::vec3 texAxisY = texY;
+
+      if (!bpDegenerate(bpTexMatX, bpTexMatY))
+      {
+
+        // rotate initial axes
+        // texAxisX = normalize(texX * bpTexMatX[0] + texY * bpTexMatX[1]);
+        // texAxisY = normalize(texY * bpTexMatY[0] + texY * bpTexMatY[1]);
+
+        // from D3 TexMatToFakeTexCoords
+        // compute a fake shift scale rot representation from the texture matrix these
+        // shift scale rot values are to be understood in the local axis base
+
+        const double ZERO_EPSILON = 1.0E-6;
 
 #if 1 // def _DEBUG
 
-    // check this matrix is orthogonal
-    if (
-      std::fabs(bpTexMatX[0] * bpTexMatX[1] + bpTexMatY[0] * bpTexMatY[1]) > ZERO_EPSILON)
-    {
-      status.warn("non orthogonal texture matrix in parseDoom3PrimitiveFace");
-    }
+        // check this matrix is orthogonal
+        if (
+          std::fabs(bpTexMatX[0] * bpTexMatX[1] + bpTexMatY[0] * bpTexMatY[1])
+          > ZERO_EPSILON)
+        {
+          status.warn("non orthogonal texture matrix in parseDoom3PrimitiveFace");
+        }
 #endif
 
-    vm::vec2f scale;
-    // scale[0] = static_cast<float>( 1.0 / sqrt( bpTexMatX[0] * bpTexMatX[0] +
-    // bpTexMatY[0] * bpTexMatY[0] ) ); scale[1] = static_cast<float>( 1.0 / sqrt(
-    // bpTexMatX[1] * bpTexMatX[1] + bpTexMatY[1] * bpTexMatY[1] ) );
+        vm::vec2f scale;
+        // scale[0] = static_cast<float>( 1.0 / sqrt( bpTexMatX[0] * bpTexMatX[0] +
+        // bpTexMatY[0] * bpTexMatY[0] ) ); scale[1] = static_cast<float>( 1.0 / sqrt(
+        // bpTexMatX[1] * bpTexMatX[1] + bpTexMatY[1] * bpTexMatY[1] ) );
 
-    scale[0] =
-      static_cast<float>(sqrt(bpTexMatX[0] * bpTexMatX[0] + bpTexMatY[0] * bpTexMatY[0]));
-    scale[1] =
-      static_cast<float>(sqrt(bpTexMatX[1] * bpTexMatX[1] + bpTexMatY[1] * bpTexMatY[1]));
+        scale[0] = static_cast<float>(
+          sqrt(bpTexMatX[0] * bpTexMatX[0] + bpTexMatY[0] * bpTexMatY[0]));
+        scale[1] = static_cast<float>(
+          sqrt(bpTexMatX[1] * bpTexMatX[1] + bpTexMatY[1] * bpTexMatY[1]));
 
-    if (bpTexMatX[0] < ZERO_EPSILON)
-    {
-      texAxisX = -texAxisX;
-    }
+        if (bpTexMatX[0] < ZERO_EPSILON)
+        {
+          texAxisX = -texAxisX;
+        }
 
-    if (bpTexMatY[1] < ZERO_EPSILON)
-    {
-      texAxisY = -texAxisY;
-    }
+        if (bpTexMatY[1] < ZERO_EPSILON)
+        {
+          texAxisY = -texAxisY;
+        }
 
 #if 1 // def _DEBUG
-    if (scale[0] < ZERO_EPSILON || scale[1] < ZERO_EPSILON)
-    {
-      status.warn("unexpected scale==0 in parseDoom3PrimitiveFace");
-    }
+        if (scale[0] < ZERO_EPSILON || scale[1] < ZERO_EPSILON)
+        {
+          status.warn("unexpected scale==0 in parseDoom3PrimitiveFace");
+        }
 #endif
 
 #if 1
-    // compute rotate value
-    float rot = 0;
+        // compute rotate value
+        float rot = 0;
 
-    if (std::fabs(bpTexMatX[0]) < ZERO_EPSILON)
-    {
+        if (std::fabs(bpTexMatX[0]) < ZERO_EPSILON)
+        {
 #if 1 // def _DEBUG
       // check brushprimit_texdef[1][0] is not zero
-      if (std::fabs(bpTexMatY[0]) < ZERO_EPSILON)
-      {
-        status.warn("unexpected bpTexMatY[0]==0 in parseDoom3PrimitiveFace");
-      }
+          if (std::fabs(bpTexMatY[0]) < ZERO_EPSILON)
+          {
+            status.warn("unexpected bpTexMatY[0]==0 in parseDoom3PrimitiveFace");
+          }
 #endif
-      // rotate is +-90
-      if (bpTexMatY[0] > 0)
-      {
-        rot = 90.0f;
-      }
-      else
-      {
-        rot = -90.0f;
-      }
-    }
-    else
-    {
-      rot = static_cast<float>(vm::to_degrees(atan2(bpTexMatY[0], bpTexMatX[0])));
-    }
+          // rotate is +-90
+          if (bpTexMatY[0] > 0)
+          {
+            rot = 90.0f;
+          }
+          else
+          {
+            rot = -90.0f;
+          }
+        }
+        else
+        {
+          rot = static_cast<float>(vm::to_degrees(atan2(bpTexMatY[0], bpTexMatX[0])));
+        }
 
-    float shiftX = static_cast<float>(bpTexMatX[2]);
-    float shiftY = static_cast<float>(bpTexMatY[2]);
+        float shiftX = static_cast<float>(bpTexMatX[2]);
+        float shiftY = static_cast<float>(bpTexMatY[2]);
 #endif
 
-    attribs.setScale(scale);
-    // attribs.setRotation(rot);
-    attribs.setXOffset(shiftX);
-    attribs.setYOffset(shiftY);
-  }
+        attribs.setScale(scale);
+        // attribs.setRotation(rot);
+        attribs.setXOffset(shiftX);
+        attribs.setYOffset(shiftY);
+      }
 
-  // Quake 2 extra info is unused in Doom 3 and got removed in Quake 4
-  if (!check(
-        QuakeMapToken::OParenthesis | QuakeMapToken::CBrace | QuakeMapToken::Eof,
-        m_tokenizer.peekToken()))
-  {
-    attribs.setSurfaceContents(parseInteger());
-    attribs.setSurfaceFlags(parseInteger());
-    attribs.setSurfaceValue(parseFloat());
-  }
+      // Quake 2 extra info is unused in Doom 3 and got removed in Quake 4
+      if (!check(
+            QuakeMapToken::OParenthesis | QuakeMapToken::CBrace | QuakeMapToken::Eof,
+            m_tokenizer.peekToken()))
+      {
+        attribs.setSurfaceContents(parseInteger());
+        attribs.setSurfaceFlags(parseInteger());
+        attribs.setSurfaceValue(parseFloat());
+      }
 
-  // TODO 2427: create a brush face
-  onValveBrushFace(
-    line, m_targetMapFormat, p1, p2, p3, attribs, texAxisX, texAxisY, status);
-}
-
-void StandardMapParser::parseQuake3Patch(ParserStatus& status, const size_t startLine)
-{
-  auto token = expect(QuakeMapToken::String, m_tokenizer.nextToken());
-  expect(PatchId2, token);
-  expect(QuakeMapToken::OBrace, m_tokenizer.nextToken());
-
-  auto textureName = parseTextureName(status);
-  expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
-
-  /*
-  Quake 3 parses the patches a bit differently. In the GtkRadiant source, the first number
-  is the column count and the second is the row count, and the points are transposed
-  during parsing. Later, when the points are interpreted, radiant puts the origin (the
-  first control point) in the bottom left, but we put it in the top left. For the grid
-  computed from the this makes no difference as long as the normals are computed
-  correctly.
-
-  I chose to interpret the data this way because it seems more intuitive and easier to
-  reason about.
-  */
-
-  token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  int rowCountInt = token.toInteger<int>();
-  if (rowCountInt < 3 || rowCountInt % 2 != 1)
-  {
-    status.warn(token.line(), token.column(), "Invalid patch height, assuming 3");
-    rowCountInt = 3;
-  }
-
-  token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  int columnCountInt = token.toInteger<int>();
-  if (columnCountInt < 3 || columnCountInt % 2 != 1)
-  {
-    status.warn(token.line(), token.column(), "Invalid patch width, assuming 3");
-    columnCountInt = 3;
-  }
-
-  size_t rowCount = static_cast<size_t>(rowCountInt);
-  size_t columnCount = static_cast<size_t>(columnCountInt);
-
-  expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
-
-  auto controlPoints = std::vector<vm::vec<FloatType, 5>>{};
-  controlPoints.reserve(columnCount * rowCount);
-
-  expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
-  for (size_t i = 0; i < size_t(rowCount); ++i)
-  {
-    expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
-    for (size_t j = 0; j < size_t(columnCount); ++j)
-    {
-      const auto controlPoint =
-        parseFloatVector<5>(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis);
-      controlPoints.push_back(controlPoint);
+      // TODO 2427: create a brush face
+      onValveBrushFace(
+        line, m_targetMapFormat, p1, p2, p3, attribs, texAxisX, texAxisY, status);
     }
-    expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
-  }
-  expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
 
-  token = expect(QuakeMapToken::CBrace, m_tokenizer.nextToken());
-  const size_t lineCount = token.line() - startLine;
-
-  onPatch(
-    startLine,
-    lineCount,
-    m_targetMapFormat,
-    rowCount,
-    columnCount,
-    std::move(controlPoints),
-    std::move(textureName),
-    status);
-}
-
-void StandardMapParser::parseDoom3Patch2(ParserStatus& status, const size_t startLine)
-{
-  auto token = expect(QuakeMapToken::String, m_tokenizer.nextToken());
-  expect(PatchId2, token);
-  expect(QuakeMapToken::OBrace, m_tokenizer.nextToken());
-
-  auto textureName = parseDoom3TextureName(status);
-
-  expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
-
-  // Parsing a patchDef2 brush primitive can be looked up for Doom 3 in
-  // neo/idlib/MapFile.cpp idMapPatch* idMapPatch::Parse( idLexer& src, const idVec3&
-  // origin, bool patchDef3, float version )
-
-  token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  auto w = token.toInteger<int>();
-  if (w < 0)
-  {
-    status.warn(token.line(), token.column(), "Negative patch width, assuming 0");
-    w = 0;
-  }
-
-  token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  auto h = token.toInteger<int>();
-  if (h < 0)
-  {
-    status.warn(token.line(), token.column(), "Negative patch height, assuming 0");
-    h = 0;
-  }
-
-  // TODO explicitSubdivisions = false
-
-  // contents, flags, value )
-  expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
-
-  auto controlPoints = std::vector<vm::vec<FloatType, 5>>{};
-  controlPoints.reserve(w * h);
-
-  expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
-  for (size_t i = 0; i < size_t(w); ++i)
-  {
-    expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
-    for (size_t j = 0; j < size_t(h); ++j)
+    void StandardMapParser::parseQuake3Patch(
+      ParserStatus & status, const size_t startLine)
     {
-      const auto controlPoint =
-        parseFloatVector<5>(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis);
-      controlPoints.push_back(controlPoint);
+      auto token = expect(QuakeMapToken::String, m_tokenizer.nextToken());
+      expect(PatchId2, token);
+      expect(QuakeMapToken::OBrace, m_tokenizer.nextToken());
+
+      auto textureName = parseTextureName(status);
+      expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
+
+      /*
+      Quake 3 parses the patches a bit differently. In the GtkRadiant source, the first
+      number is the column count and the second is the row count, and the points are
+      transposed during parsing. Later, when the points are interpreted, radiant puts the
+      origin (the first control point) in the bottom left, but we put it in the top left.
+      For the grid computed from the this makes no difference as long as the normals are
+      computed correctly.
+
+      I chose to interpret the data this way because it seems more intuitive and easier to
+      reason about.
+      */
+
+      token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      int rowCountInt = token.toInteger<int>();
+      if (rowCountInt < 3 || rowCountInt % 2 != 1)
+      {
+        status.warn(token.line(), token.column(), "Invalid patch height, assuming 3");
+        rowCountInt = 3;
+      }
+
+      token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      int columnCountInt = token.toInteger<int>();
+      if (columnCountInt < 3 || columnCountInt % 2 != 1)
+      {
+        status.warn(token.line(), token.column(), "Invalid patch width, assuming 3");
+        columnCountInt = 3;
+      }
+
+      size_t rowCount = static_cast<size_t>(rowCountInt);
+      size_t columnCount = static_cast<size_t>(columnCountInt);
+
+      expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
+
+      auto controlPoints = std::vector<vm::vec<FloatType, 5>>{};
+      controlPoints.reserve(columnCount * rowCount);
+
+      expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
+      for (size_t i = 0; i < size_t(rowCount); ++i)
+      {
+        expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
+        for (size_t j = 0; j < size_t(columnCount); ++j)
+        {
+          const auto controlPoint =
+            parseFloatVector<5>(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis);
+          controlPoints.push_back(controlPoint);
+        }
+        expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
+      }
+      expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
+
+      token = expect(QuakeMapToken::CBrace, m_tokenizer.nextToken());
+      const size_t lineCount = token.line() - startLine;
+
+      onPatch(
+        startLine,
+        lineCount,
+        m_targetMapFormat,
+        rowCount,
+        columnCount,
+        std::move(controlPoints),
+        std::move(textureName),
+        status);
     }
-    expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
-  }
-  expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
 
-  token = expect(QuakeMapToken::CBrace, m_tokenizer.nextToken());
-  const size_t lineCount = token.line() - startLine;
-
-  onPatch(
-    startLine,
-    lineCount,
-    m_targetMapFormat,
-    w,
-    h,
-    std::move(controlPoints),
-    std::move(textureName),
-    status);
-}
-
-void StandardMapParser::parseDoom3Patch3(ParserStatus& status, const size_t startLine)
-{
-  auto token = expect(QuakeMapToken::String, m_tokenizer.nextToken());
-  expect(PatchId3, token);
-  expect(QuakeMapToken::OBrace, m_tokenizer.nextToken());
-
-  auto textureName = parseDoom3TextureName(status);
-
-  expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
-
-  // Parsing a patchDef2 brush primitive can be looked up for Doom 3 in
-  // neo/idlib/MapFile.cpp idMapPatch* idMapPatch::Parse( idLexer& src, const idVec3&
-  // origin, bool patchDef3, float version )
-
-  token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  auto w = token.toInteger<int>();
-  if (w < 0)
-  {
-    status.warn(token.line(), token.column(), "Negative patch width, assuming 0");
-    w = 0;
-  }
-
-  token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  auto h = token.toInteger<int>();
-  if (h < 0)
-  {
-    status.warn(token.line(), token.column(), "Negative patch height, assuming 0");
-    h = 0;
-  }
-
-  // explicit subdivisions
-  token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  auto horzSubdivisions = token.toInteger<int>();
-  if (horzSubdivisions < 0)
-  {
-    status.warn(
-      token.line(), token.column(), "Negative horizontal subdivisions, assuming 0");
-    horzSubdivisions = 0;
-  }
-
-  token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  auto vertSubdivisions = token.toInteger<int>();
-  if (vertSubdivisions < 0)
-  {
-    status.warn(
-      token.line(), token.column(), "Negative horizontal subdivisions, assuming 0");
-    vertSubdivisions = 0;
-  }
-
-  // TODO explicitSubdivisions = true
-
-  // contents, flags, value )
-  expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
-  expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
-
-  auto controlPoints = std::vector<vm::vec<FloatType, 5>>{};
-  controlPoints.reserve(w * h);
-
-  expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
-  for (size_t i = 0; i < size_t(w); ++i)
-  {
-    expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
-    for (size_t j = 0; j < size_t(h); ++j)
+    void StandardMapParser::parseDoom3Patch2(
+      ParserStatus & status, const size_t startLine)
     {
-      const auto controlPoint =
-        parseFloatVector<5>(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis);
-      controlPoints.push_back(controlPoint);
+      auto token = expect(QuakeMapToken::String, m_tokenizer.nextToken());
+      expect(PatchId2, token);
+      expect(QuakeMapToken::OBrace, m_tokenizer.nextToken());
+
+      auto textureName = parseDoom3TextureName(status);
+
+      expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
+
+      // Parsing a patchDef2 brush primitive can be looked up for Doom 3 in
+      // neo/idlib/MapFile.cpp idMapPatch* idMapPatch::Parse( idLexer& src, const idVec3&
+      // origin, bool patchDef3, float version )
+
+      token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      auto w = token.toInteger<int>();
+      if (w < 0)
+      {
+        status.warn(token.line(), token.column(), "Negative patch width, assuming 0");
+        w = 0;
+      }
+
+      token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      auto h = token.toInteger<int>();
+      if (h < 0)
+      {
+        status.warn(token.line(), token.column(), "Negative patch height, assuming 0");
+        h = 0;
+      }
+
+      // TODO explicitSubdivisions = false
+
+      // contents, flags, value )
+      expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
+
+      auto controlPoints = std::vector<vm::vec<FloatType, 5>>{};
+      controlPoints.reserve(w * h);
+
+      expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
+      for (size_t i = 0; i < size_t(w); ++i)
+      {
+        expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
+        for (size_t j = 0; j < size_t(h); ++j)
+        {
+          const auto controlPoint =
+            parseFloatVector<5>(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis);
+          controlPoints.push_back(controlPoint);
+        }
+        expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
+      }
+      expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
+
+      token = expect(QuakeMapToken::CBrace, m_tokenizer.nextToken());
+      const size_t lineCount = token.line() - startLine;
+
+      onPatch(
+        startLine,
+        lineCount,
+        m_targetMapFormat,
+        w,
+        h,
+        std::move(controlPoints),
+        std::move(textureName),
+        status);
     }
-    expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
-  }
-  expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
 
-  token = expect(QuakeMapToken::CBrace, m_tokenizer.nextToken());
-  const size_t lineCount = token.line() - startLine;
+    void StandardMapParser::parseDoom3Patch3(
+      ParserStatus & status, const size_t startLine)
+    {
+      auto token = expect(QuakeMapToken::String, m_tokenizer.nextToken());
+      expect(PatchId3, token);
+      expect(QuakeMapToken::OBrace, m_tokenizer.nextToken());
 
-  onPatch(
-    startLine,
-    lineCount,
-    m_targetMapFormat,
-    w,
-    h,
-    std::move(controlPoints),
-    std::move(textureName),
-    status);
-}
+      auto textureName = parseDoom3TextureName(status);
 
-std::tuple<vm::vec3, vm::vec3, vm::vec3> StandardMapParser::parseFacePoints(
-  ParserStatus& /* status */)
-{
-  const auto p1 =
-    correct(parseFloatVector(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis));
-  const auto p2 =
-    correct(parseFloatVector(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis));
-  const auto p3 =
-    correct(parseFloatVector(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis));
+      expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
 
-  return std::make_tuple(p1, p2, p3);
-}
+      // Parsing a patchDef2 brush primitive can be looked up for Doom 3 in
+      // neo/idlib/MapFile.cpp idMapPatch* idMapPatch::Parse( idLexer& src, const idVec3&
+      // origin, bool patchDef3, float version )
 
-std::string StandardMapParser::parseTextureName(ParserStatus& /* status */)
-{
-  const auto [textureName, wasQuoted] =
-    m_tokenizer.readAnyString(QuakeMapTokenizer::Whitespace());
-  return wasQuoted ? kdl::str_unescape(textureName, "\"\\") : std::string(textureName);
-}
+      token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      auto w = token.toInteger<int>();
+      if (w < 0)
+      {
+        status.warn(token.line(), token.column(), "Negative patch width, assuming 0");
+        w = 0;
+      }
 
-std::string StandardMapParser::parseDoom3TextureName(ParserStatus& /* status */)
-{
+      token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      auto h = token.toInteger<int>();
+      if (h < 0)
+      {
+        status.warn(token.line(), token.column(), "Negative patch height, assuming 0");
+        h = 0;
+      }
 
-  // "textures/base_wall/lfwall13f3" or whatever quoted string
-  auto token = m_tokenizer.nextToken();
-  assert(token.type() == QuakeMapToken::String);
-  const auto textureName = token.data();
+      // explicit subdivisions
+      token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      auto horzSubdivisions = token.toInteger<int>();
+      if (horzSubdivisions < 0)
+      {
+        status.warn(
+          token.line(), token.column(), "Negative horizontal subdivisions, assuming 0");
+        horzSubdivisions = 0;
+      }
 
-  // HACK: remove textures/
-  // would be better to avoid this and fix the texture lookup somewhere else
-  Path texturePath(textureName);
-  if (!texturePath.isEmpty() && texturePath.firstComponent().asString() == "textures")
-  {
-    texturePath = texturePath.deleteFirstComponent();
-  }
+      token = expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      auto vertSubdivisions = token.toInteger<int>();
+      if (vertSubdivisions < 0)
+      {
+        status.warn(
+          token.line(), token.column(), "Negative horizontal subdivisions, assuming 0");
+        vertSubdivisions = 0;
+      }
 
-  const auto shortName = texturePath.asString("/");
+      // TODO explicitSubdivisions = true
 
-  return shortName;
-}
+      // contents, flags, value )
+      expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      expect(QuakeMapToken::Integer, m_tokenizer.nextToken());
+      expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
 
-std::tuple<vm::vec3, float, vm::vec3, float> StandardMapParser::parseValveTextureAxes(
-  ParserStatus& /* status */)
-{
-  const auto firstAxis =
-    parseFloatVector<4>(QuakeMapToken::OBracket, QuakeMapToken::CBracket);
-  const auto texS = firstAxis.xyz();
-  const auto xOffset = static_cast<float>(firstAxis.w());
+      auto controlPoints = std::vector<vm::vec<FloatType, 5>>{};
+      controlPoints.reserve(w * h);
 
-  const auto secondAxis =
-    parseFloatVector<4>(QuakeMapToken::OBracket, QuakeMapToken::CBracket);
-  const auto texT = secondAxis.xyz();
-  const auto yOffset = static_cast<float>(secondAxis.w());
+      expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
+      for (size_t i = 0; i < size_t(w); ++i)
+      {
+        expect(QuakeMapToken::OParenthesis, m_tokenizer.nextToken());
+        for (size_t j = 0; j < size_t(h); ++j)
+        {
+          const auto controlPoint =
+            parseFloatVector<5>(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis);
+          controlPoints.push_back(controlPoint);
+        }
+        expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
+      }
+      expect(QuakeMapToken::CParenthesis, m_tokenizer.nextToken());
 
-  return std::make_tuple(texS, xOffset, texT, yOffset);
-}
+      token = expect(QuakeMapToken::CBrace, m_tokenizer.nextToken());
+      const size_t lineCount = token.line() - startLine;
 
-std::tuple<vm::vec3, vm::vec3> StandardMapParser::parsePrimitiveTextureAxes(
-  ParserStatus& /* status */)
-{
-  const auto texX =
-    correct(parseFloatVector(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis));
-  const auto texY =
-    correct(parseFloatVector(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis));
-  return std::make_tuple(texX, texY);
-}
+      onPatch(
+        startLine,
+        lineCount,
+        m_targetMapFormat,
+        w,
+        h,
+        std::move(controlPoints),
+        std::move(textureName),
+        status);
+    }
 
-float StandardMapParser::parseFloat()
-{
-  return expect(QuakeMapToken::Number, m_tokenizer.nextToken()).toFloat<float>();
-}
+    std::tuple<vm::vec3, vm::vec3, vm::vec3> StandardMapParser::parseFacePoints(
+      ParserStatus & /* status */)
+    {
+      const auto p1 = correct(
+        parseFloatVector(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis));
+      const auto p2 = correct(
+        parseFloatVector(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis));
+      const auto p3 = correct(
+        parseFloatVector(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis));
 
-int StandardMapParser::parseInteger()
-{
-  return expect(QuakeMapToken::Integer, m_tokenizer.nextToken()).toInteger<int>();
-}
+      return std::make_tuple(p1, p2, p3);
+    }
 
-StandardMapParser::TokenNameMap StandardMapParser::tokenNames() const
-{
-  using namespace QuakeMapToken;
+    std::string StandardMapParser::parseTextureName(ParserStatus & /* status */)
+    {
+      const auto [textureName, wasQuoted] =
+        m_tokenizer.readAnyString(QuakeMapTokenizer::Whitespace());
+      return wasQuoted ? kdl::str_unescape(textureName, "\"\\")
+                       : std::string(textureName);
+    }
 
-  TokenNameMap names;
-  names[Integer] = "integer";
-  names[Decimal] = "decimal";
-  names[String] = "string";
-  names[OParenthesis] = "'('";
-  names[CParenthesis] = "')'";
-  names[OBrace] = "'{'";
-  names[CBrace] = "'}'";
-  names[OBracket] = "'['";
-  names[CBracket] = "']'";
-  names[Comment] = "comment";
-  names[Eof] = "end of file";
-  return names;
-}
-} // namespace IO
+    std::string StandardMapParser::parseDoom3TextureName(ParserStatus & /* status */)
+    {
+
+      // "textures/base_wall/lfwall13f3" or whatever quoted string
+      auto token = m_tokenizer.nextToken();
+      assert(token.type() == QuakeMapToken::String);
+      const auto textureName = token.data();
+
+      // HACK: remove textures/
+      // would be better to avoid this and fix the texture lookup somewhere else
+      Path texturePath(textureName);
+      if (!texturePath.isEmpty() && texturePath.firstComponent().asString() == "textures")
+      {
+        texturePath = texturePath.deleteFirstComponent();
+      }
+
+      const auto shortName = texturePath.asString("/");
+
+      return shortName;
+    }
+
+    std::tuple<vm::vec3, float, vm::vec3, float> StandardMapParser::parseValveTextureAxes(
+      ParserStatus & /* status */)
+    {
+      const auto firstAxis =
+        parseFloatVector<4>(QuakeMapToken::OBracket, QuakeMapToken::CBracket);
+      const auto texS = firstAxis.xyz();
+      const auto xOffset = static_cast<float>(firstAxis.w());
+
+      const auto secondAxis =
+        parseFloatVector<4>(QuakeMapToken::OBracket, QuakeMapToken::CBracket);
+      const auto texT = secondAxis.xyz();
+      const auto yOffset = static_cast<float>(secondAxis.w());
+
+      return std::make_tuple(texS, xOffset, texT, yOffset);
+    }
+
+    std::tuple<vm::vec3, vm::vec3> StandardMapParser::parsePrimitiveTextureAxes(
+      ParserStatus & /* status */)
+    {
+      const auto texX = correct(
+        parseFloatVector(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis));
+      const auto texY = correct(
+        parseFloatVector(QuakeMapToken::OParenthesis, QuakeMapToken::CParenthesis));
+      return std::make_tuple(texX, texY);
+    }
+
+    float StandardMapParser::parseFloat()
+    {
+      return expect(QuakeMapToken::Number, m_tokenizer.nextToken()).toFloat<float>();
+    }
+
+    int StandardMapParser::parseInteger()
+    {
+      return expect(QuakeMapToken::Integer, m_tokenizer.nextToken()).toInteger<int>();
+    }
+
+    StandardMapParser::TokenNameMap StandardMapParser::tokenNames() const
+    {
+      using namespace QuakeMapToken;
+
+      TokenNameMap names;
+      names[Integer] = "integer";
+      names[Decimal] = "decimal";
+      names[String] = "string";
+      names[OParenthesis] = "'('";
+      names[CParenthesis] = "')'";
+      names[OBrace] = "'{'";
+      names[CBrace] = "'}'";
+      names[OBracket] = "'['";
+      names[CBracket] = "']'";
+      names[Comment] = "comment";
+      names[Eof] = "end of file";
+      return names;
+    }
+  } // namespace IO
 } // namespace TrenchBroom

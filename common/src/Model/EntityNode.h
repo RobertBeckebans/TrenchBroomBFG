@@ -102,31 +102,31 @@ private: // implement Node interface
   void doFindNodesContaining(const vm::vec3& point, std::vector<Node*>& result) override;
 
     const IssueGenerator* generator, std::vector<Issue*>& issues) override;
-  void doAccept(NodeVisitor& visitor) override;
-  void doAccept(ConstNodeVisitor& visitor) const override;
+    void doAccept(NodeVisitor& visitor) override;
+    void doAccept(ConstNodeVisitor& visitor) const override;
 
-  std::vector<Node*> nodesRequiredForViewSelection() override;
+    std::vector<Node*> nodesRequiredForViewSelection() override;
 
-private: // implement EntityNodeBase interface
-  void doPropertiesDidChange(const vm::bbox3& oldBounds) override;
-  vm::vec3 doGetLinkSourceAnchor() const override;
-  vm::vec3 doGetLinkTargetAnchor() const override;
+  private: // implement EntityNodeBase interface
+    void doPropertiesDidChange(const vm::bbox3& oldBounds) override;
+    vm::vec3 doGetLinkSourceAnchor() const override;
+    vm::vec3 doGetLinkTargetAnchor() const override;
 
-private: // implement Object interface
-  Node* doGetContainer() override;
-  LayerNode* doGetContainingLayer() override;
-  GroupNode* doGetContainingGroup() override;
+  private: // implement Object interface
+    Node* doGetContainer() override;
+    LayerNode* doGetContainingLayer() override;
+    GroupNode* doGetContainingGroup() override;
 
-private:
-  void invalidateBounds();
-  void validateBounds() const;
+  private:
+    void invalidateBounds();
+    void validateBounds() const;
 
-private: // implement Taggable interface
-  void doAcceptTagVisitor(TagVisitor& visitor) override;
-  void doAcceptTagVisitor(ConstTagVisitor& visitor) const override;
+  private: // implement Taggable interface
+    void doAcceptTagVisitor(TagVisitor& visitor) override;
+    void doAcceptTagVisitor(ConstTagVisitor& visitor) const override;
 
-private:
-  deleteCopyAndMove(EntityNode);
+  private:
+    deleteCopyAndMove(EntityNode);
 };
 } // namespace Model
 } // namespace TrenchBroom

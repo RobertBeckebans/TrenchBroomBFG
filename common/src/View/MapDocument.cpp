@@ -4794,7 +4794,7 @@ void MapDocument::registerValidators()
   m_world->registerValidator(new Model::BrushEntityWithoutModelKeyIssueGenerator());
 
   m_world->registerValidator(std::make_unique<Model::EmptyPropertyKeyValidator>());
-  //m_world->registerValidator(std::make_unique<Model::EmptyPropertyValueValidator>());
+  // m_world->registerValidator(std::make_unique<Model::EmptyPropertyValueValidator>());
   m_world->registerValidator(
     std::make_unique<Model::LongPropertyKeyValidator>(m_game->maxPropertyLength()));
   m_world->registerValidator(

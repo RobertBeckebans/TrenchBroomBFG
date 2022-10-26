@@ -251,6 +251,7 @@ void GameFactory::loadGameConfigs()
 {
   auto errors = std::vector<std::string>{};
 
+  // RB: ignore legacy non Doom 3 configs
   const auto configFiles = m_configFS->findItemsRecursively(
     IO::Path(""), IO::FileNameMatcher("GameConfigBFG.cfg"));
   for (const auto& configFilePath : configFiles)

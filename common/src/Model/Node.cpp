@@ -894,7 +894,6 @@ void Node::invalidateIssues() const
 
 const EntityPropertyConfig& Node::entityPropertyConfig() const
 {
-{
   return doGetEntityPropertyConfig();
 }
 

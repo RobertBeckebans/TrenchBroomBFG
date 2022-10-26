@@ -352,8 +352,6 @@ bool BrushNode::doSelectable() const
 
 void BrushNode::doAccept(NodeVisitor& visitor)
 {
-{
-{
   visitor.visit(this);
 }
 
