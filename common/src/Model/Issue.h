@@ -24,13 +24,16 @@
 #include <string>
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
+namespace TrenchBroom
+{
+namespace Model
+{
 class BrushFace;
 class BrushNode;
 class Node;
 
-class Issue {
+class Issue
+{
 private:
   size_t m_seqId;
 
@@ -63,7 +66,8 @@ private: // subclassing interface
   virtual std::string doGetDescription() const = 0;
 };
 
-class BrushFaceIssue : public Issue {
+class BrushFaceIssue : public Issue
+{
 private:
   const size_t m_faceIndex;
 
@@ -79,7 +83,8 @@ private:
   size_t doGetLineNumber() const override;
 };
 
-class EntityPropertyIssue : public Issue {
+class EntityPropertyIssue : public Issue
+{
 public:
   using Issue::Issue;
 

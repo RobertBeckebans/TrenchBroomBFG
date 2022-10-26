@@ -24,12 +24,15 @@
 
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-// Helper issue generator for Doom 3 because Doom doesn't allow entities with the same (target)name
-// Also Doom 3 does not call it targetname anymore. It's just name and every is supposed to have a
-// unique name
-class ConflictingTargetnameIssueGenerator : public IssueGenerator {
+namespace TrenchBroom
+{
+namespace Model
+{
+// Helper issue generator for Doom 3 because Doom doesn't allow entities with the same
+// (target)name Also Doom 3 does not call it targetname anymore. It's just name and every
+// is supposed to have a unique name
+class ConflictingTargetnameIssueGenerator : public IssueGenerator
+{
 private:
   class ConflictingTargetnameIssue;
   class ConflictingTargetnameIssueQuickFix;

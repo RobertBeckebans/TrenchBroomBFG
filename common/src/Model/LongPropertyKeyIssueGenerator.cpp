@@ -29,9 +29,12 @@
 #include <string>
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class LongPropertyKeyIssueGenerator::LongPropertyKeyIssue : public EntityPropertyIssue {
+namespace TrenchBroom
+{
+namespace Model
+{
+class LongPropertyKeyIssueGenerator::LongPropertyKeyIssue : public EntityPropertyIssue
+{
 public:
   static const IssueType Type;
 
@@ -41,30 +44,39 @@ private:
 public:
   LongPropertyKeyIssue(EntityNodeBase* node, const std::string& propertyKey)
     : EntityPropertyIssue(node)
-    , m_propertyKey(propertyKey) {}
+    , m_propertyKey(propertyKey)
+  {
+  }
 
   const std::string& propertyKey() const override { return m_propertyKey; }
 
 private:
   IssueType doGetType() const override { return Type; }
 
-  std::string doGetDescription() const override {
+  std::string doGetDescription() const override
+  {
     return "Entity property key '" + m_propertyKey.substr(0, 8) + "...' is too long.";
   }
 };
 
-const IssueType LongPropertyKeyIssueGenerator::LongPropertyKeyIssue::Type = Issue::freeType();
+const IssueType LongPropertyKeyIssueGenerator::LongPropertyKeyIssue::Type =
+  Issue::freeType();
 
 LongPropertyKeyIssueGenerator::LongPropertyKeyIssueGenerator(const size_t maxLength)
   : IssueGenerator(LongPropertyKeyIssue::Type, "Long entity property keys")
-  , m_maxLength(maxLength) {
+  , m_maxLength(maxLength)
+{
   addQuickFix(new RemoveEntityPropertiesQuickFix(LongPropertyKeyIssue::Type));
 }
 
-void LongPropertyKeyIssueGenerator::doGenerate(EntityNodeBase* node, IssueList& issues) const {
-  for (const EntityProperty& property : node->entity().properties()) {
+void LongPropertyKeyIssueGenerator::doGenerate(
+  EntityNodeBase* node, IssueList& issues) const
+{
+  for (const EntityProperty& property : node->entity().properties())
+  {
     const std::string& propertyKey = property.key();
-    if (propertyKey.size() >= m_maxLength) {
+    if (propertyKey.size() >= m_maxLength)
+    {
       issues.push_back(new LongPropertyKeyIssue(node, propertyKey));
     }
   }

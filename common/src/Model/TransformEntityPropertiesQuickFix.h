@@ -24,9 +24,12 @@
 #include <functional>
 #include <string>
 
-namespace TrenchBroom {
-namespace Model {
-class TransformEntityPropertiesQuickFix : public IssueQuickFix {
+namespace TrenchBroom
+{
+namespace Model
+{
+class TransformEntityPropertiesQuickFix : public IssueQuickFix
+{
 public:
   using KeyTransform = std::function<std::string(const std::string&)>;
   using ValueTransform = std::function<std::string(const std::string&)>;
@@ -37,7 +40,9 @@ private:
 
 public:
   TransformEntityPropertiesQuickFix(
-    const IssueType issueType, const std::string& description, const KeyTransform& keyTransform,
+    const IssueType issueType,
+    const std::string& description,
+    const KeyTransform& keyTransform,
     const ValueTransform& valueTransform);
 
 private:

@@ -25,11 +25,14 @@
 #include <string>
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
+namespace TrenchBroom
+{
+namespace Model
+{
 class Game;
 
-class MissingModIssueGenerator : public IssueGenerator {
+class MissingModIssueGenerator : public IssueGenerator
+{
 private:
   class MissingModIssue;
   class MissingModIssueQuickFix;

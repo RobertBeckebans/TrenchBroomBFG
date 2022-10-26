@@ -24,9 +24,12 @@
 #include <string>
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class LinkTargetIssueGenerator : public IssueGenerator {
+namespace TrenchBroom
+{
+namespace Model
+{
+class LinkTargetIssueGenerator : public IssueGenerator
+{
 private:
   class LinkTargetIssue;
   class LinkTargetIssueQuickFix;

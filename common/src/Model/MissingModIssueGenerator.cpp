@@ -37,9 +37,12 @@
 #include <string>
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class MissingModIssueGenerator::MissingModIssue : public Issue {
+namespace TrenchBroom
+{
+namespace Model
+{
+class MissingModIssueGenerator::MissingModIssue : public Issue
+{
 public:
   static const IssueType Type;
 
@@ -48,15 +51,19 @@ private:
   std::string m_message;
 
 public:
-  MissingModIssue(EntityNodeBase* node, const std::string& mod, const std::string& message)
+  MissingModIssue(
+    EntityNodeBase* node, const std::string& mod, const std::string& message)
     : Issue(node)
     , m_mod(mod)
-    , m_message(message) {}
+    , m_message(message)
+  {
+  }
 
 private:
   IssueType doGetType() const override { return Type; }
 
-  std::string doGetDescription() const override {
+  std::string doGetDescription() const override
+  {
     return "Mod '" + m_mod + "' could not be used: " + m_message;
   }
 
@@ -66,13 +73,17 @@ public:
 
 const IssueType MissingModIssueGenerator::MissingModIssue::Type = Issue::freeType();
 
-class MissingModIssueGenerator::MissingModIssueQuickFix : public IssueQuickFix {
+class MissingModIssueGenerator::MissingModIssueQuickFix : public IssueQuickFix
+{
 public:
   MissingModIssueQuickFix()
-    : IssueQuickFix(MissingModIssue::Type, "Remove mod") {}
+    : IssueQuickFix(MissingModIssue::Type, "Remove mod")
+  {
+  }
 
 private:
-  void doApply(MapFacade* facade, const IssueList& issues) const override {
+  void doApply(MapFacade* facade, const IssueList& issues) const override
+  {
     const PushSelection pushSelection(facade);
 
     // If nothing is selected, property changes will affect only world.
@@ -84,9 +95,12 @@ private:
   }
 
   std::vector<std::string> removeMissingMods(
-    std::vector<std::string> mods, const IssueList& issues) const {
-    for (const Issue* issue : issues) {
-      if (issue->type() == MissingModIssue::Type) {
+    std::vector<std::string> mods, const IssueList& issues) const
+  {
+    for (const Issue* issue : issues)
+    {
+      if (issue->type() == MissingModIssue::Type)
+      {
         const MissingModIssue* modIssue = static_cast<const MissingModIssue*>(issue);
         const std::string& missingMod = modIssue->mod();
         mods = kdl::vec_erase(std::move(mods), missingMod);
@@ -98,32 +112,38 @@ private:
 
 MissingModIssueGenerator::MissingModIssueGenerator(std::weak_ptr<Game> game)
   : IssueGenerator(MissingModIssue::Type, "Missing mod directory")
-  , m_game(std::move(game)) {
+  , m_game(std::move(game))
+{
   addQuickFix(new MissingModIssueQuickFix());
 }
 
-void MissingModIssueGenerator::doGenerate(EntityNodeBase* node, IssueList& issues) const {
+void MissingModIssueGenerator::doGenerate(EntityNodeBase* node, IssueList& issues) const
+{
   assert(node != nullptr);
 
-  if (node->entity().classname() != EntityPropertyValues::WorldspawnClassname) {
+  if (node->entity().classname() != EntityPropertyValues::WorldspawnClassname)
+  {
     return;
   }
 
-  if (kdl::mem_expired(m_game)) {
+  if (kdl::mem_expired(m_game))
+  {
     return;
   }
 
   auto game = kdl::mem_lock(m_game);
   const std::vector<std::string> mods = game->extractEnabledMods(node->entity());
 
-  if (mods == m_lastMods) {
+  if (mods == m_lastMods)
+  {
     return;
   }
 
   const auto additionalSearchPaths = IO::Path::asPaths(mods);
   const auto errors = game->checkAdditionalSearchPaths(additionalSearchPaths);
 
-  for (const auto& [searchPath, message] : errors) {
+  for (const auto& [searchPath, message] : errors)
+  {
     issues.push_back(new MissingModIssue(node, searchPath.asString(), message));
   }
 

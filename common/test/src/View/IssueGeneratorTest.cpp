@@ -36,10 +36,14 @@
 
 #include "Catch2.h"
 
-namespace TrenchBroom {
-namespace View {
-TEST_CASE_METHOD(MapDocumentTest, "IssueGeneratorTest.emptyProperty") {
-  Model::EntityNode* entityNode = document->createPointEntity(m_pointEntityDef, vm::vec3::zero());
+namespace TrenchBroom
+{
+namespace View
+{
+TEST_CASE_METHOD(MapDocumentTest, "IssueGeneratorTest.emptyProperty")
+{
+  Model::EntityNode* entityNode =
+    document->createPointEntity(m_pointEntityDef, vm::vec3::zero());
 
   document->deselectAll();
   document->selectNodes({entityNode});
@@ -47,9 +51,11 @@ TEST_CASE_METHOD(MapDocumentTest, "IssueGeneratorTest.emptyProperty") {
   REQUIRE(entityNode->entity().hasProperty(""));
 
   auto issueGenerators = std::vector<Model::IssueGenerator*>{
-    new Model::EmptyPropertyKeyIssueGenerator(), new Model::EmptyPropertyValueIssueGenerator()};
+    new Model::EmptyPropertyKeyIssueGenerator(),
+    new Model::EmptyPropertyValueIssueGenerator()};
 
-  class AcceptAllIssues {
+  class AcceptAllIssues
+  {
   public:
     bool operator()(const Model::Issue*) const { return true; }
   };
@@ -91,7 +97,8 @@ TEST_CASE_METHOD(MapDocumentTest, "IssueGeneratorTest.emptyProperty") {
      (issue0->type() == issueGenerators[1]->type() &&
       issue1->type() == issueGenerators[0]->type())));
 
-  std::vector<Model::IssueQuickFix*> fixes = document->world()->quickFixes(issue0->type());
+  std::vector<Model::IssueQuickFix*> fixes =
+    document->world()->quickFixes(issue0->type());
   REQUIRE(1 == fixes.size());
 
   Model::IssueQuickFix* quickFix = fixes.at(0);

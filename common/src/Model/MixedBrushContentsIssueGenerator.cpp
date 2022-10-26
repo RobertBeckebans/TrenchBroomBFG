@@ -27,9 +27,12 @@
 #include <string>
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class MixedBrushContentsIssueGenerator::MixedBrushContentsIssue : public Issue {
+namespace TrenchBroom
+{
+namespace Model
+{
+class MixedBrushContentsIssueGenerator::MixedBrushContentsIssue : public Issue
+{
 public:
   friend class MixedBrushContentsIssueQuickFix;
 
@@ -38,19 +41,29 @@ public:
 
 public:
   explicit MixedBrushContentsIssue(BrushNode* brush)
-    : Issue(brush) {}
+    : Issue(brush)
+  {
+  }
 
   IssueType doGetType() const override { return Type; }
 
-  std::string doGetDescription() const override { return "Brush has mixed content flags"; }
+  std::string doGetDescription() const override
+  {
+    return "Brush has mixed content flags";
+  }
 };
 
-const IssueType MixedBrushContentsIssueGenerator::MixedBrushContentsIssue::Type = Issue::freeType();
+const IssueType MixedBrushContentsIssueGenerator::MixedBrushContentsIssue::Type =
+  Issue::freeType();
 
 MixedBrushContentsIssueGenerator::MixedBrushContentsIssueGenerator()
-  : IssueGenerator(MixedBrushContentsIssue::Type, "Mixed brush content flags") {}
+  : IssueGenerator(MixedBrushContentsIssue::Type, "Mixed brush content flags")
+{
+}
 
-void MixedBrushContentsIssueGenerator::doGenerate(BrushNode* brushNode, IssueList& issues) const {
+void MixedBrushContentsIssueGenerator::doGenerate(
+  BrushNode* brushNode, IssueList& issues) const
+{
   const Brush& brush = brushNode->brush();
   const auto& faces = brush.faces();
   auto it = std::begin(faces);
@@ -59,8 +72,10 @@ void MixedBrushContentsIssueGenerator::doGenerate(BrushNode* brushNode, IssueLis
 
   const int contentFlags = it->resolvedSurfaceContents();
   ++it;
-  while (it != end) {
-    if (it->resolvedSurfaceContents() != contentFlags) {
+  while (it != end)
+  {
+    if (it->resolvedSurfaceContents() != contentFlags)
+    {
       issues.push_back(new MixedBrushContentsIssue(brushNode));
     }
     ++it;

@@ -32,9 +32,12 @@
 #include <string>
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class InvalidTextureScaleIssueGenerator::InvalidTextureScaleIssue : public BrushFaceIssue {
+namespace TrenchBroom
+{
+namespace Model
+{
+class InvalidTextureScaleIssueGenerator::InvalidTextureScaleIssue : public BrushFaceIssue
+{
 public:
   friend class InvalidTextureScaleIssueQuickFix;
 
@@ -43,30 +46,43 @@ public:
 
 public:
   explicit InvalidTextureScaleIssue(BrushNode* node, const size_t faceIndex)
-    : BrushFaceIssue(node, faceIndex) {}
+    : BrushFaceIssue(node, faceIndex)
+  {
+  }
 
   IssueType doGetType() const override { return Type; }
 
-  std::string doGetDescription() const override { return "Face has invalid texture scale."; }
+  std::string doGetDescription() const override
+  {
+    return "Face has invalid texture scale.";
+  }
 };
 
 const IssueType InvalidTextureScaleIssueGenerator::InvalidTextureScaleIssue::Type =
   Issue::freeType();
 
-class InvalidTextureScaleIssueGenerator::InvalidTextureScaleIssueQuickFix : public IssueQuickFix {
+class InvalidTextureScaleIssueGenerator::InvalidTextureScaleIssueQuickFix
+  : public IssueQuickFix
+{
 public:
   InvalidTextureScaleIssueQuickFix()
-    : IssueQuickFix(InvalidTextureScaleIssue::Type, "Reset texture scale") {}
+    : IssueQuickFix(InvalidTextureScaleIssue::Type, "Reset texture scale")
+  {
+  }
 
 private:
-  void doApply(MapFacade* facade, const IssueList& issues) const override {
+  void doApply(MapFacade* facade, const IssueList& issues) const override
+  {
     const PushSelection push(facade);
 
     std::vector<BrushFaceHandle> faceHandles;
-    for (const auto* issue : issues) {
-      if (issue->type() == InvalidTextureScaleIssue::Type) {
+    for (const auto* issue : issues)
+    {
+      if (issue->type() == InvalidTextureScaleIssue::Type)
+      {
         BrushNode* node = static_cast<BrushNode*>(issue->node());
-        const auto faceIndex = static_cast<const InvalidTextureScaleIssue*>(issue)->faceIndex();
+        const auto faceIndex =
+          static_cast<const InvalidTextureScaleIssue*>(issue)->faceIndex();
         faceHandles.push_back(BrushFaceHandle(node, faceIndex));
       }
     }
@@ -81,15 +97,20 @@ private:
 };
 
 InvalidTextureScaleIssueGenerator::InvalidTextureScaleIssueGenerator()
-  : IssueGenerator(InvalidTextureScaleIssue::Type, "Invalid texture scale") {
+  : IssueGenerator(InvalidTextureScaleIssue::Type, "Invalid texture scale")
+{
   addQuickFix(new InvalidTextureScaleIssueQuickFix());
 }
 
-void InvalidTextureScaleIssueGenerator::doGenerate(BrushNode* brushNode, IssueList& issues) const {
+void InvalidTextureScaleIssueGenerator::doGenerate(
+  BrushNode* brushNode, IssueList& issues) const
+{
   const Brush& brush = brushNode->brush();
-  for (size_t i = 0u; i < brush.faceCount(); ++i) {
+  for (size_t i = 0u; i < brush.faceCount(); ++i)
+  {
     const BrushFace& face = brush.face(i);
-    if (!face.attributes().valid()) {
+    if (!face.attributes().valid())
+    {
       issues.push_back(new InvalidTextureScaleIssue(brushNode, i));
     }
   }

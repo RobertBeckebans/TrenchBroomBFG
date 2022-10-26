@@ -25,16 +25,24 @@
 
 #include <string>
 
-namespace TrenchBroom {
-namespace Model {
+namespace TrenchBroom
+{
+namespace Model
+{
 TransformEntityPropertiesQuickFix::TransformEntityPropertiesQuickFix(
-  const IssueType issueType, const std::string& description, const KeyTransform& keyTransform,
+  const IssueType issueType,
+  const std::string& description,
+  const KeyTransform& keyTransform,
   const ValueTransform& valueTransform)
   : IssueQuickFix(issueType, description)
   , m_keyTransform(keyTransform)
-  , m_valueTransform(valueTransform) {}
+  , m_valueTransform(valueTransform)
+{
+}
 
-void TransformEntityPropertiesQuickFix::doApply(MapFacade* facade, const Issue* issue) const {
+void TransformEntityPropertiesQuickFix::doApply(
+  MapFacade* facade, const Issue* issue) const
+{
   const PushSelection push(facade);
 
   const auto* propIssue = static_cast<const EntityPropertyIssue*>(issue);
@@ -49,9 +57,12 @@ void TransformEntityPropertiesQuickFix::doApply(MapFacade* facade, const Issue* 
   facade->deselectAll();
   facade->selectNodes({issue->node()});
 
-  if (newKey.empty()) {
+  if (newKey.empty())
+  {
     facade->removeProperty(propIssue->propertyKey());
-  } else {
+  }
+  else
+  {
     if (newKey != oldkey)
       facade->renameProperty(oldkey, newKey);
     if (newValue != oldValue)

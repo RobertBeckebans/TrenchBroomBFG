@@ -29,44 +29,59 @@
 #include <string>
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class MissingDefinitionIssueGenerator::MissingDefinitionIssue : public Issue {
+namespace TrenchBroom
+{
+namespace Model
+{
+class MissingDefinitionIssueGenerator::MissingDefinitionIssue : public Issue
+{
 public:
   static const IssueType Type;
 
 public:
   explicit MissingDefinitionIssue(EntityNodeBase* node)
-    : Issue(node) {}
+    : Issue(node)
+  {
+  }
 
 private:
   IssueType doGetType() const override { return Type; }
 
-  std::string doGetDescription() const override {
+  std::string doGetDescription() const override
+  {
     const EntityNodeBase* entityNode = static_cast<EntityNodeBase*>(node());
     return entityNode->name() + " not found in entity definitions";
   }
 };
 
-const IssueType MissingDefinitionIssueGenerator::MissingDefinitionIssue::Type = Issue::freeType();
+const IssueType MissingDefinitionIssueGenerator::MissingDefinitionIssue::Type =
+  Issue::freeType();
 
-class MissingDefinitionIssueGenerator::MissingDefinitionIssueQuickFix : public IssueQuickFix {
+class MissingDefinitionIssueGenerator::MissingDefinitionIssueQuickFix
+  : public IssueQuickFix
+{
 public:
   MissingDefinitionIssueQuickFix()
-    : IssueQuickFix(MissingDefinitionIssue::Type, "Delete entities") {}
+    : IssueQuickFix(MissingDefinitionIssue::Type, "Delete entities")
+  {
+  }
 
 private:
-  void doApply(MapFacade* facade, const IssueList& /* issues */) const override {
+  void doApply(MapFacade* facade, const IssueList& /* issues */) const override
+  {
     facade->deleteObjects();
   }
 };
 
 MissingDefinitionIssueGenerator::MissingDefinitionIssueGenerator()
-  : IssueGenerator(MissingDefinitionIssue::Type, "Missing entity definition") {
+  : IssueGenerator(MissingDefinitionIssue::Type, "Missing entity definition")
+{
   addQuickFix(new MissingDefinitionIssueQuickFix());
 }
 
-void MissingDefinitionIssueGenerator::doGenerate(EntityNodeBase* node, IssueList& issues) const {
+void MissingDefinitionIssueGenerator::doGenerate(
+  EntityNodeBase* node, IssueList& issues) const
+{
   if (node->entity().definition() == nullptr)
     issues.push_back(new MissingDefinitionIssue(node));
 }

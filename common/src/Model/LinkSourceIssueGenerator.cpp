@@ -29,19 +29,25 @@
 
 #include <string>
 
-namespace TrenchBroom {
-namespace Model {
-class LinkSourceIssueGenerator::LinkSourceIssue : public Issue {
+namespace TrenchBroom
+{
+namespace Model
+{
+class LinkSourceIssueGenerator::LinkSourceIssue : public Issue
+{
 public:
   static const IssueType Type;
 
 public:
   explicit LinkSourceIssue(EntityNodeBase* node)
-    : Issue(node) {}
+    : Issue(node)
+  {
+  }
 
   IssueType doGetType() const override { return Type; }
 
-  std::string doGetDescription() const override {
+  std::string doGetDescription() const override
+  {
     const EntityNodeBase* entityNode = static_cast<EntityNodeBase*>(node());
     return entityNode->name() + " has unused targetname key";
   }
@@ -49,13 +55,17 @@ public:
 
 const IssueType LinkSourceIssueGenerator::LinkSourceIssue::Type = Issue::freeType();
 
-class LinkSourceIssueGenerator::LinkSourceIssueQuickFix : public IssueQuickFix {
+class LinkSourceIssueGenerator::LinkSourceIssueQuickFix : public IssueQuickFix
+{
 public:
   LinkSourceIssueQuickFix()
-    : IssueQuickFix(LinkSourceIssue::Type, "Delete property") {}
+    : IssueQuickFix(LinkSourceIssue::Type, "Delete property")
+  {
+  }
 
 private:
-  void doApply(MapFacade* facade, const Issue* issue) const override {
+  void doApply(MapFacade* facade, const Issue* issue) const override
+  {
     const PushSelection push(facade);
 
     // If world node is affected, the selection will fail, but if nothing is selected,
@@ -68,11 +78,13 @@ private:
 };
 
 LinkSourceIssueGenerator::LinkSourceIssueGenerator()
-  : IssueGenerator(LinkSourceIssue::Type, "Missing entity link source") {
+  : IssueGenerator(LinkSourceIssue::Type, "Missing entity link source")
+{
   addQuickFix(new LinkSourceIssueQuickFix());
 }
 
-void LinkSourceIssueGenerator::doGenerate(EntityNodeBase* node, IssueList& issues) const {
+void LinkSourceIssueGenerator::doGenerate(EntityNodeBase* node, IssueList& issues) const
+{
   if (node->hasMissingSources())
     issues.push_back(new LinkSourceIssue(node));
 }

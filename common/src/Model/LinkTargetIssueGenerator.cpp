@@ -30,9 +30,12 @@
 #include <string>
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class LinkTargetIssueGenerator::LinkTargetIssue : public Issue {
+namespace TrenchBroom
+{
+namespace Model
+{
+class LinkTargetIssueGenerator::LinkTargetIssue : public Issue
+{
 public:
   friend class LinkTargetIssueQuickFix;
 
@@ -45,11 +48,14 @@ public:
 public:
   LinkTargetIssue(EntityNodeBase* node, const std::string& name)
     : Issue(node)
-    , m_name(name) {}
+    , m_name(name)
+  {
+  }
 
   IssueType doGetType() const override { return Type; }
 
-  std::string doGetDescription() const override {
+  std::string doGetDescription() const override
+  {
     const EntityNodeBase* propertyNode = static_cast<EntityNodeBase*>(node());
     return propertyNode->name() + " has missing target for key '" + m_name + "'";
   }
@@ -57,13 +63,17 @@ public:
 
 const IssueType LinkTargetIssueGenerator::LinkTargetIssue::Type = Issue::freeType();
 
-class LinkTargetIssueGenerator::LinkTargetIssueQuickFix : public IssueQuickFix {
+class LinkTargetIssueGenerator::LinkTargetIssueQuickFix : public IssueQuickFix
+{
 public:
   LinkTargetIssueQuickFix()
-    : IssueQuickFix(LinkTargetIssue::Type, "Delete property") {}
+    : IssueQuickFix(LinkTargetIssue::Type, "Delete property")
+  {
+  }
 
 private:
-  void doApply(MapFacade* facade, const Issue* issue) const override {
+  void doApply(MapFacade* facade, const Issue* issue) const override
+  {
     const PushSelection push(facade);
 
     const LinkTargetIssue* targetIssue = static_cast<const LinkTargetIssue*>(issue);
@@ -79,19 +89,23 @@ private:
 };
 
 LinkTargetIssueGenerator::LinkTargetIssueGenerator()
-  : IssueGenerator(LinkTargetIssue::Type, "Missing entity link target") {
+  : IssueGenerator(LinkTargetIssue::Type, "Missing entity link target")
+{
   addQuickFix(new LinkTargetIssueQuickFix());
 }
 
-void LinkTargetIssueGenerator::doGenerate(EntityNodeBase* node, IssueList& issues) const {
+void LinkTargetIssueGenerator::doGenerate(EntityNodeBase* node, IssueList& issues) const
+{
   processKeys(node, node->findMissingLinkTargets(), issues);
   processKeys(node, node->findMissingKillTargets(), issues);
 }
 
 void LinkTargetIssueGenerator::processKeys(
-  EntityNodeBase* node, const std::vector<std::string>& keys, IssueList& issues) const {
+  EntityNodeBase* node, const std::vector<std::string>& keys, IssueList& issues) const
+{
   issues.reserve(issues.size() + keys.size());
-  for (const std::string& key : keys) {
+  for (const std::string& key : keys)
+  {
     issues.push_back(new LinkTargetIssue(node, key));
   }
 }

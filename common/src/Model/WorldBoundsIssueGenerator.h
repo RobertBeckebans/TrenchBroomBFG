@@ -26,9 +26,12 @@
 
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class WorldBoundsIssueGenerator : public IssueGenerator {
+namespace TrenchBroom
+{
+namespace Model
+{
+class WorldBoundsIssueGenerator : public IssueGenerator
+{
 private:
   class WorldBoundsIssue;
   class WorldBoundsIssueQuickFix;

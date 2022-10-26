@@ -28,9 +28,12 @@
 
 #include <string>
 
-namespace TrenchBroom {
-namespace Model {
-class NonIntegerVerticesIssueGenerator::NonIntegerVerticesIssue : public Issue {
+namespace TrenchBroom
+{
+namespace Model
+{
+class NonIntegerVerticesIssueGenerator::NonIntegerVerticesIssue : public Issue
+{
 public:
   friend class NonIntegerVerticesIssueQuickFix;
 
@@ -39,35 +42,51 @@ public:
 
 public:
   explicit NonIntegerVerticesIssue(BrushNode* brush)
-    : Issue(brush) {}
+    : Issue(brush)
+  {
+  }
 
   IssueType doGetType() const override { return Type; }
 
-  std::string doGetDescription() const override { return "Brush has non-integer vertices"; }
+  std::string doGetDescription() const override
+  {
+    return "Brush has non-integer vertices";
+  }
 };
 
-const IssueType NonIntegerVerticesIssueGenerator::NonIntegerVerticesIssue::Type = Issue::freeType();
+const IssueType NonIntegerVerticesIssueGenerator::NonIntegerVerticesIssue::Type =
+  Issue::freeType();
 
-class NonIntegerVerticesIssueGenerator::NonIntegerVerticesIssueQuickFix : public IssueQuickFix {
+class NonIntegerVerticesIssueGenerator::NonIntegerVerticesIssueQuickFix
+  : public IssueQuickFix
+{
 public:
   NonIntegerVerticesIssueQuickFix()
-    : IssueQuickFix(NonIntegerVerticesIssue::Type, "Convert vertices to integer") {}
+    : IssueQuickFix(NonIntegerVerticesIssue::Type, "Convert vertices to integer")
+  {
+  }
 
 private:
-  void doApply(MapFacade* facade, const IssueList& /* issues */) const override {
+  void doApply(MapFacade* facade, const IssueList& /* issues */) const override
+  {
     facade->snapVertices(1);
   }
 };
 
 NonIntegerVerticesIssueGenerator::NonIntegerVerticesIssueGenerator()
-  : IssueGenerator(NonIntegerVerticesIssue::Type, "Non-integer vertices") {
+  : IssueGenerator(NonIntegerVerticesIssue::Type, "Non-integer vertices")
+{
   addQuickFix(new NonIntegerVerticesIssueQuickFix());
 }
 
-void NonIntegerVerticesIssueGenerator::doGenerate(BrushNode* brushNode, IssueList& issues) const {
+void NonIntegerVerticesIssueGenerator::doGenerate(
+  BrushNode* brushNode, IssueList& issues) const
+{
   const Brush& brush = brushNode->brush();
-  for (const BrushVertex* vertex : brush.vertices()) {
-    if (!vm::is_integral(vertex->position())) {
+  for (const BrushVertex* vertex : brush.vertices())
+  {
+    if (!vm::is_integral(vertex->position()))
+    {
       issues.push_back(new NonIntegerVerticesIssue(brushNode));
       return;
     }

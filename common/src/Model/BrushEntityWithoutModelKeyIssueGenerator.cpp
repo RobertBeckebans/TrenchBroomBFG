@@ -35,36 +35,48 @@
 #include <map>
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class BrushEntityWithoutModelKeyIssueGenerator::BrushEntityWithoutModelKeyIssue : public Issue {
+namespace TrenchBroom
+{
+namespace Model
+{
+class BrushEntityWithoutModelKeyIssueGenerator::BrushEntityWithoutModelKeyIssue
+  : public Issue
+{
 public:
   static const IssueType Type;
 
 public:
   explicit BrushEntityWithoutModelKeyIssue(EntityNode* entity)
-    : Issue(entity) {}
+    : Issue(entity)
+  {
+  }
 
 private:
   IssueType doGetType() const override { return Type; }
 
-  std::string doGetDescription() const override {
+  std::string doGetDescription() const override
+  {
     const EntityNode* entity = static_cast<EntityNode*>(node());
     return entity->name() + " is brush entity and misses model key";
   }
 };
 
-const IssueType BrushEntityWithoutModelKeyIssueGenerator::BrushEntityWithoutModelKeyIssue::Type =
-  Issue::freeType();
+const IssueType
+  BrushEntityWithoutModelKeyIssueGenerator::BrushEntityWithoutModelKeyIssue::Type =
+    Issue::freeType();
 
 class BrushEntityWithoutModelKeyIssueGenerator::BrushEntityWithoutModelKeyIssueQuickFix
-  : public IssueQuickFix {
+  : public IssueQuickFix
+{
 public:
   BrushEntityWithoutModelKeyIssueQuickFix()
-    : IssueQuickFix(BrushEntityWithoutModelKeyIssue::Type, "Autoassign model key") {}
+    : IssueQuickFix(BrushEntityWithoutModelKeyIssue::Type, "Autoassign model key")
+  {
+  }
 
 private:
-  void doApply(MapFacade* facade, const Issue* issue) const override {
+  void doApply(MapFacade* facade, const Issue* issue) const override
+  {
     const PushSelection push(facade);
 
     // If world node is affected, the selection will fail, but if nothing is selected,
@@ -77,33 +89,42 @@ private:
 
     // grab unique entity name
     std::string targetname;
-    const std::string* name = propertyNode->entity().property(EntityPropertyKeys::Targetname);
-    if (name != nullptr && !name->empty()) {
+    const std::string* name =
+      propertyNode->entity().property(EntityPropertyKeys::Targetname);
+    if (name != nullptr && !name->empty())
+    {
       targetname = *name;
-    } else {
+    }
+    else
+    {
       // give entity a unique target name
       propertyNode->generateUniqueTargetname(targetname);
       facade->setProperty(EntityPropertyKeys::Targetname, targetname);
     }
 
-    // "model" has to be the same as "name" because dmap stores the model into the BSP using the
-    // "name" value
+    // "model" has to be the same as "name" because dmap stores the model into the BSP
+    // using the "name" value
     facade->setProperty(EntityPropertyKeys::Model, targetname);
   }
 };
 
 BrushEntityWithoutModelKeyIssueGenerator::BrushEntityWithoutModelKeyIssueGenerator()
-  : IssueGenerator(BrushEntityWithoutModelKeyIssue::Type, "Brush entity without model key") {
+  : IssueGenerator(
+    BrushEntityWithoutModelKeyIssue::Type, "Brush entity without model key")
+{
   addQuickFix(new BrushEntityWithoutModelKeyIssueQuickFix());
 }
 
 void BrushEntityWithoutModelKeyIssueGenerator::doGenerate(
-  EntityNode* entityNode, IssueList& issues) const {
+  EntityNode* entityNode, IssueList& issues) const
+{
   ensure(entityNode != nullptr, "entity is null");
   const Assets::EntityDefinition* definition = entityNode->entity().definition();
   if (
-    definition != nullptr && definition->type() == Assets::EntityDefinitionType::BrushEntity &&
-    entityNode->hasChildren() && !entityNode->entity().hasProperty(EntityPropertyKeys::Model))
+    definition != nullptr
+    && definition->type() == Assets::EntityDefinitionType::BrushEntity
+    && entityNode->hasChildren()
+    && !entityNode->entity().hasProperty(EntityPropertyKeys::Model))
     issues.push_back(new BrushEntityWithoutModelKeyIssue(entityNode));
 }
 } // namespace Model

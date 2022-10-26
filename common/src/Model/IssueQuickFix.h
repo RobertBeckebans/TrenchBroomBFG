@@ -24,12 +24,15 @@
 #include <string>
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
+namespace TrenchBroom
+{
+namespace Model
+{
 class Issue;
 class MapFacade;
 
-class IssueQuickFix {
+class IssueQuickFix
+{
 private:
   IssueType m_issueType;
   std::string m_description;

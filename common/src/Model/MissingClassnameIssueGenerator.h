@@ -23,9 +23,12 @@
 
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class MissingClassnameIssueGenerator : public IssueGenerator {
+namespace TrenchBroom
+{
+namespace Model
+{
+class MissingClassnameIssueGenerator : public IssueGenerator
+{
 private:
   class MissingClassnameIssue;
   class MissingClassnameIssueQuickFix;

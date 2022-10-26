@@ -27,12 +27,15 @@
 
 #include <vecmath/util.h>
 
-namespace TrenchBroom {
-namespace Preferences {
+namespace TrenchBroom
+{
+namespace Preferences
+{
 // NOTE: any QKeySequence preferences must be functions like CameraFly*
 // because QKeySequence docs specify that you can't create an instance before QApplication
 
-// NOTE: When adding a new preference here, always update the staticPreferences() implementation
+// NOTE: When adding a new preference here, always update the staticPreferences()
+// implementation
 
 extern Preference<int> MapViewLayout;
 
@@ -141,8 +144,9 @@ extern Preference<float> TextureBrowserIconSize;
 extern Preference<Color> TextureBrowserDefaultColor;
 extern Preference<Color> TextureBrowserSelectedColor;
 extern Preference<Color> TextureBrowserUsedColor;
-extern Preference<Color> TextureBrowserTranslucentColor; // RB: used to mark translucent Doom 3
-                                                         // materials that could create leaks
+extern Preference<Color>
+  TextureBrowserTranslucentColor; // RB: used to mark translucent Doom 3
+                                  // materials that could create leaks
 
 extern Preference<float> CameraLookSpeed;
 extern Preference<bool> CameraLookInvertH;
@@ -206,7 +210,8 @@ extern Preference<QString> EntityLinkMode;
 const std::vector<PreferenceBase*>& staticPreferences();
 const std::map<IO::Path, PreferenceBase*>& staticPreferencesMap();
 /**
- * Returns the subset of staticPreferences() that are key sequences, used by dump-shortcuts.
+ * Returns the subset of staticPreferences() that are key sequences, used by
+ * dump-shortcuts.
  */
 std::vector<Preference<QKeySequence>*> keyPreferences();
 

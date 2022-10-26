@@ -23,12 +23,15 @@
 
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
+namespace TrenchBroom
+{
+namespace Model
+{
 class IssueGenerator;
 class IssueQuickFix;
 
-class IssueGeneratorRegistry {
+class IssueGeneratorRegistry
+{
 private:
   std::vector<IssueGenerator*> m_generators;
 

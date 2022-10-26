@@ -23,9 +23,12 @@
 
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class InvalidTextureScaleIssueGenerator : public IssueGenerator {
+namespace TrenchBroom
+{
+namespace Model
+{
+class InvalidTextureScaleIssueGenerator : public IssueGenerator
+{
 private:
   class InvalidTextureScaleIssue;
   class InvalidTextureScaleIssueQuickFix;

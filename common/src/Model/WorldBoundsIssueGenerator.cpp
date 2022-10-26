@@ -27,9 +27,12 @@
 
 #include <string>
 
-namespace TrenchBroom {
-namespace Model {
-class WorldBoundsIssueGenerator::WorldBoundsIssue : public Issue {
+namespace TrenchBroom
+{
+namespace Model
+{
+class WorldBoundsIssueGenerator::WorldBoundsIssue : public Issue
+{
 public:
   friend class WorldBoundsIssueQuickFix;
 
@@ -38,20 +41,29 @@ public:
 
 public:
   explicit WorldBoundsIssue(Node* node)
-    : Issue(node) {}
+    : Issue(node)
+  {
+  }
 
   IssueType doGetType() const override { return Type; }
 
-  std::string doGetDescription() const override { return "Object is out of world bounds"; }
+  std::string doGetDescription() const override
+  {
+    return "Object is out of world bounds";
+  }
 };
 
-class WorldBoundsIssueGenerator::WorldBoundsIssueQuickFix : public IssueQuickFix {
+class WorldBoundsIssueGenerator::WorldBoundsIssueQuickFix : public IssueQuickFix
+{
 public:
   WorldBoundsIssueQuickFix()
-    : IssueQuickFix(WorldBoundsIssue::Type, "Delete objects") {}
+    : IssueQuickFix(WorldBoundsIssue::Type, "Delete objects")
+  {
+  }
 
 private:
-  void doApply(MapFacade* facade, const IssueList& /* issues */) const override {
+  void doApply(MapFacade* facade, const IssueList& /* issues */) const override
+  {
     facade->deleteObjects();
   }
 };
@@ -60,16 +72,19 @@ const IssueType WorldBoundsIssueGenerator::WorldBoundsIssue::Type = Issue::freeT
 
 WorldBoundsIssueGenerator::WorldBoundsIssueGenerator(const vm::bbox3& bounds)
   : IssueGenerator(WorldBoundsIssue::Type, "Objects out of world bounds")
-  , m_bounds(bounds) {
+  , m_bounds(bounds)
+{
   addQuickFix(new WorldBoundsIssueQuickFix());
 }
 
-void WorldBoundsIssueGenerator::doGenerate(EntityNode* entity, IssueList& issues) const {
+void WorldBoundsIssueGenerator::doGenerate(EntityNode* entity, IssueList& issues) const
+{
   if (!m_bounds.contains(entity->logicalBounds()))
     issues.push_back(new WorldBoundsIssue(entity));
 }
 
-void WorldBoundsIssueGenerator::doGenerate(BrushNode* brush, IssueList& issues) const {
+void WorldBoundsIssueGenerator::doGenerate(BrushNode* brush, IssueList& issues) const
+{
   if (!m_bounds.contains(brush->logicalBounds()))
     issues.push_back(new WorldBoundsIssue(brush));
 }

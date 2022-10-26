@@ -23,9 +23,12 @@
 
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class MixedBrushContentsIssueGenerator : public IssueGenerator {
+namespace TrenchBroom
+{
+namespace Model
+{
+class MixedBrushContentsIssueGenerator : public IssueGenerator
+{
 private:
   class MixedBrushContentsIssue;
 

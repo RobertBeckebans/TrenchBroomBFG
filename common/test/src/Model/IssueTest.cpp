@@ -40,31 +40,37 @@
 
 #include "Catch2.h"
 
-namespace TrenchBroom {
-namespace Model {
-class TestIssue : public Issue {
+namespace TrenchBroom
+{
+namespace Model
+{
+class TestIssue : public Issue
+{
 public:
   TestIssue(Node* node)
-    : Issue(node) {}
+    : Issue(node)
+  {
+  }
 
 private:
   IssueType doGetType() const { return 0; }
   std::string doGetDescription() const { return ""; }
 };
 
-TEST_CASE("Issue.addSelectableNodes") {
+TEST_CASE("Issue.addSelectableNodes")
+{
   const auto worldBounds = vm::bbox3{8192.0};
 
   auto outerGroupNode = GroupNode{Group{"outer"}};
 
   auto* innerGroupNode = new GroupNode{Group{"inner"}};
   auto* pointEntityNode = new EntityNode{Entity{}};
-  auto* brushNode =
-    new BrushNode{BrushBuilder{MapFormat::Quake3, worldBounds}.createCube(64.0, "texture").value()};
+  auto* brushNode = new BrushNode{
+    BrushBuilder{MapFormat::Quake3, worldBounds}.createCube(64.0, "texture").value()};
 
   auto* brushEntityNode = new EntityNode{Entity{}};
-  auto* entityBrushNode =
-    new BrushNode{BrushBuilder{MapFormat::Quake3, worldBounds}.createCube(64.0, "texture").value()};
+  auto* entityBrushNode = new BrushNode{
+    BrushBuilder{MapFormat::Quake3, worldBounds}.createCube(64.0, "texture").value()};
   brushEntityNode->addChild(entityBrushNode);
 
   // clang-format off

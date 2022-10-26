@@ -27,13 +27,16 @@
 #include <memory>
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
+namespace TrenchBroom
+{
+namespace Model
+{
 class WorldNode;
 class Game;
 class Node;
 
-class SoftMapBoundsIssueGenerator : public IssueGenerator {
+class SoftMapBoundsIssueGenerator : public IssueGenerator
+{
 private:
   class SoftMapBoundsIssue;
   class SoftMapBoundsIssueQuickFix;

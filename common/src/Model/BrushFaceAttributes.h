@@ -30,14 +30,18 @@
 #include <string>
 #include <string_view>
 
-namespace TrenchBroom {
-namespace Assets {
+namespace TrenchBroom
+{
+namespace Assets
+{
 class Texture;
 }
 
-namespace Model {
+namespace Model
+{
 
-class BrushFaceAttributes {
+class BrushFaceAttributes
+{
 public:
   static const std::string NoTextureName;
 
@@ -54,7 +58,8 @@ private:
 
   std::optional<Color> m_color;
 
-  // RB: Quake 3 / Doom 3 brush primitives that require the ComputeAxisBase rule for projection
+  // RB: Quake 3 / Doom 3 brush primitives that require the ComputeAxisBase rule for
+  // projection
   bool m_bpMode;
   vm::mat4x4f m_bpMatrix; // usually 2x3 affine transform in 2D space
 
@@ -66,8 +71,15 @@ public:
   BrushFaceAttributes& operator=(BrushFaceAttributes other);
 
   kdl_reflect_decl(
-    BrushFaceAttributes, m_textureName, m_offset, m_scale, m_rotation, m_surfaceContents,
-    m_surfaceFlags, m_surfaceValue, m_color);
+    BrushFaceAttributes,
+    m_textureName,
+    m_offset,
+    m_scale,
+    m_rotation,
+    m_surfaceContents,
+    m_surfaceFlags,
+    m_surfaceValue,
+    m_color);
 
   friend void swap(BrushFaceAttributes& lhs, BrushFaceAttributes& rhs);
 

@@ -23,9 +23,12 @@
 
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class PropertyValueWithDoubleQuotationMarksIssueGenerator : public IssueGenerator {
+namespace TrenchBroom
+{
+namespace Model
+{
+class PropertyValueWithDoubleQuotationMarksIssueGenerator : public IssueGenerator
+{
 private:
   class PropertyValueWithDoubleQuotationMarksIssue;
 

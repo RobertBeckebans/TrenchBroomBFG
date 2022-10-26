@@ -26,36 +26,46 @@
 
 #include <cassert>
 
-namespace TrenchBroom {
-namespace Model {
-IssueGeneratorRegistry::~IssueGeneratorRegistry() {
+namespace TrenchBroom
+{
+namespace Model
+{
+IssueGeneratorRegistry::~IssueGeneratorRegistry()
+{
   clearGenerators();
 }
 
-const std::vector<IssueGenerator*>& IssueGeneratorRegistry::registeredGenerators() const {
+const std::vector<IssueGenerator*>& IssueGeneratorRegistry::registeredGenerators() const
+{
   return m_generators;
 }
 
-std::vector<IssueQuickFix*> IssueGeneratorRegistry::quickFixes(const IssueType issueTypes) const {
+std::vector<IssueQuickFix*> IssueGeneratorRegistry::quickFixes(
+  const IssueType issueTypes) const
+{
   std::vector<IssueQuickFix*> result;
-  for (const IssueGenerator* generator : m_generators) {
+  for (const IssueGenerator* generator : m_generators)
+  {
     if ((generator->type() & issueTypes) != 0)
       result = kdl::vec_concat(std::move(result), generator->quickFixes());
   }
   return result;
 }
 
-void IssueGeneratorRegistry::registerGenerator(IssueGenerator* generator) {
+void IssueGeneratorRegistry::registerGenerator(IssueGenerator* generator)
+{
   ensure(generator != nullptr, "generator is null");
   assert(!kdl::vec_contains(m_generators, generator));
   m_generators.push_back(generator);
 }
 
-void IssueGeneratorRegistry::unregisterAllGenerators() {
+void IssueGeneratorRegistry::unregisterAllGenerators()
+{
   clearGenerators();
 }
 
-void IssueGeneratorRegistry::clearGenerators() {
+void IssueGeneratorRegistry::clearGenerators()
+{
   kdl::vec_clear_and_delete(m_generators);
 }
 } // namespace Model

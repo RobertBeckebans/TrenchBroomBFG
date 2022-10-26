@@ -28,33 +28,44 @@
 
 #include <string>
 
-namespace TrenchBroom {
-namespace Model {
-class EmptyPropertyKeyIssueGenerator::EmptyPropertyKeyIssue : public Issue {
+namespace TrenchBroom
+{
+namespace Model
+{
+class EmptyPropertyKeyIssueGenerator::EmptyPropertyKeyIssue : public Issue
+{
 public:
   static const IssueType Type;
 
 public:
   explicit EmptyPropertyKeyIssue(EntityNodeBase* node)
-    : Issue(node) {}
+    : Issue(node)
+  {
+  }
 
   IssueType doGetType() const override { return Type; }
 
-  std::string doGetDescription() const override {
+  std::string doGetDescription() const override
+  {
     const EntityNodeBase* entityNode = static_cast<EntityNodeBase*>(node());
     return entityNode->name() + " has a property with an empty name.";
   }
 };
 
-const IssueType EmptyPropertyKeyIssueGenerator::EmptyPropertyKeyIssue::Type = Issue::freeType();
+const IssueType EmptyPropertyKeyIssueGenerator::EmptyPropertyKeyIssue::Type =
+  Issue::freeType();
 
-class EmptyPropertyKeyIssueGenerator::EmptyPropertyKeyIssueQuickFix : public IssueQuickFix {
+class EmptyPropertyKeyIssueGenerator::EmptyPropertyKeyIssueQuickFix : public IssueQuickFix
+{
 public:
   EmptyPropertyKeyIssueQuickFix()
-    : IssueQuickFix(EmptyPropertyKeyIssue::Type, "Delete property") {}
+    : IssueQuickFix(EmptyPropertyKeyIssue::Type, "Delete property")
+  {
+  }
 
 private:
-  void doApply(MapFacade* facade, const Issue* issue) const override {
+  void doApply(MapFacade* facade, const Issue* issue) const override
+  {
     const PushSelection push(facade);
 
     // If world node is affected, the selection will fail, but if nothing is selected,
@@ -67,11 +78,14 @@ private:
 };
 
 EmptyPropertyKeyIssueGenerator::EmptyPropertyKeyIssueGenerator()
-  : IssueGenerator(EmptyPropertyKeyIssue::Type, "Empty property name") {
+  : IssueGenerator(EmptyPropertyKeyIssue::Type, "Empty property name")
+{
   addQuickFix(new EmptyPropertyKeyIssueQuickFix());
 }
 
-void EmptyPropertyKeyIssueGenerator::doGenerate(EntityNodeBase* node, IssueList& issues) const {
+void EmptyPropertyKeyIssueGenerator::doGenerate(
+  EntityNodeBase* node, IssueList& issues) const
+{
   if (node->entity().hasProperty(""))
     issues.push_back(new EmptyPropertyKeyIssue(node));
 }

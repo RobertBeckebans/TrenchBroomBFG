@@ -29,60 +29,76 @@
 #include <cassert>
 #include <string>
 
-namespace TrenchBroom {
-namespace Model {
-IssueGenerator::~IssueGenerator() {
+namespace TrenchBroom
+{
+namespace Model
+{
+IssueGenerator::~IssueGenerator()
+{
   kdl::vec_clear_and_delete(m_quickFixes);
 }
 
-IssueType IssueGenerator::type() const {
+IssueType IssueGenerator::type() const
+{
   return m_type;
 }
 
-const std::string& IssueGenerator::description() const {
+const std::string& IssueGenerator::description() const
+{
   return m_description;
 }
 
-const std::vector<IssueQuickFix*>& IssueGenerator::quickFixes() const {
+const std::vector<IssueQuickFix*>& IssueGenerator::quickFixes() const
+{
   return m_quickFixes;
 }
 
-void IssueGenerator::generate(WorldNode* worldNode, IssueList& issues) const {
+void IssueGenerator::generate(WorldNode* worldNode, IssueList& issues) const
+{
   doGenerate(worldNode, issues);
 }
 
-void IssueGenerator::generate(LayerNode* layerNode, IssueList& issues) const {
+void IssueGenerator::generate(LayerNode* layerNode, IssueList& issues) const
+{
   doGenerate(layerNode, issues);
 }
 
-void IssueGenerator::generate(GroupNode* groupNode, IssueList& issues) const {
+void IssueGenerator::generate(GroupNode* groupNode, IssueList& issues) const
+{
   doGenerate(groupNode, issues);
 }
 
-void IssueGenerator::generate(EntityNode* entityNode, IssueList& issues) const {
+void IssueGenerator::generate(EntityNode* entityNode, IssueList& issues) const
+{
   doGenerate(entityNode, issues);
 }
 
-void IssueGenerator::generate(BrushNode* brushNode, IssueList& issues) const {
+void IssueGenerator::generate(BrushNode* brushNode, IssueList& issues) const
+{
   doGenerate(brushNode, issues);
 }
 
 IssueGenerator::IssueGenerator(const IssueType type, const std::string& description)
   : m_type(type)
-  , m_description(description) {}
+  , m_description(description)
+{
+}
 
-void IssueGenerator::addQuickFix(IssueQuickFix* quickFix) {
+void IssueGenerator::addQuickFix(IssueQuickFix* quickFix)
+{
   ensure(quickFix != nullptr, "quickFix is null");
   assert(!kdl::vec_contains(m_quickFixes, quickFix));
   m_quickFixes.push_back(quickFix);
 }
 
-void IssueGenerator::doGenerate(WorldNode* worldNode, IssueList& issues) const {
+void IssueGenerator::doGenerate(WorldNode* worldNode, IssueList& issues) const
+{
   doGenerate(static_cast<EntityNodeBase*>(worldNode), issues);
 }
 void IssueGenerator::doGenerate(LayerNode*, IssueList&) const {}
 void IssueGenerator::doGenerate(GroupNode*, IssueList&) const {}
-void IssueGenerator::doGenerate(EntityNode* entityNode, IssueList& issues) const {
+void IssueGenerator::doGenerate(EntityNode* entityNode, IssueList& issues) const
+{
   doGenerate(static_cast<EntityNodeBase*>(entityNode), issues);
 }
 void IssueGenerator::doGenerate(BrushNode*, IssueList&) const {}

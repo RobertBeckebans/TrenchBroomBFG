@@ -23,9 +23,12 @@
 
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class EmptyPropertyKeyIssueGenerator : public IssueGenerator {
+namespace TrenchBroom
+{
+namespace Model
+{
+class EmptyPropertyKeyIssueGenerator : public IssueGenerator
+{
 private:
   class EmptyPropertyKeyIssue;
   class EmptyPropertyKeyIssueQuickFix;

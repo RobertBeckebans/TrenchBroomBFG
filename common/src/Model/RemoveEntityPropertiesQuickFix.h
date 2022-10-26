@@ -21,9 +21,12 @@
 
 #include "Model/IssueQuickFix.h"
 
-namespace TrenchBroom {
-namespace Model {
-class RemoveEntityPropertiesQuickFix : public IssueQuickFix {
+namespace TrenchBroom
+{
+namespace Model
+{
+class RemoveEntityPropertiesQuickFix : public IssueQuickFix
+{
 public:
   explicit RemoveEntityPropertiesQuickFix(IssueType issueType);
 

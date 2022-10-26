@@ -23,9 +23,12 @@
 
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class LongPropertyValueIssueGenerator : public IssueGenerator {
+namespace TrenchBroom
+{
+namespace Model
+{
+class LongPropertyValueIssueGenerator : public IssueGenerator
+{
 private:
   class LongPropertyValueIssue;
   class TruncateLongPropertyValueIssueQuickFix;

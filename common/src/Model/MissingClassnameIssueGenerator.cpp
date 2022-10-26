@@ -29,41 +29,57 @@
 #include <string>
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class MissingClassnameIssueGenerator::MissingClassnameIssue : public Issue {
+namespace TrenchBroom
+{
+namespace Model
+{
+class MissingClassnameIssueGenerator::MissingClassnameIssue : public Issue
+{
 public:
   static const IssueType Type;
 
 public:
   explicit MissingClassnameIssue(EntityNodeBase* node)
-    : Issue(node) {}
+    : Issue(node)
+  {
+  }
 
 private:
   IssueType doGetType() const override { return Type; }
 
-  std::string doGetDescription() const override { return "Entity has no classname property"; }
+  std::string doGetDescription() const override
+  {
+    return "Entity has no classname property";
+  }
 };
 
-const IssueType MissingClassnameIssueGenerator::MissingClassnameIssue::Type = Issue::freeType();
+const IssueType MissingClassnameIssueGenerator::MissingClassnameIssue::Type =
+  Issue::freeType();
 
-class MissingClassnameIssueGenerator::MissingClassnameIssueQuickFix : public IssueQuickFix {
+class MissingClassnameIssueGenerator::MissingClassnameIssueQuickFix : public IssueQuickFix
+{
 public:
   MissingClassnameIssueQuickFix()
-    : IssueQuickFix(MissingClassnameIssue::Type, "Delete entities") {}
+    : IssueQuickFix(MissingClassnameIssue::Type, "Delete entities")
+  {
+  }
 
 private:
-  void doApply(MapFacade* facade, const IssueList& /* issues */) const override {
+  void doApply(MapFacade* facade, const IssueList& /* issues */) const override
+  {
     facade->deleteObjects();
   }
 };
 
 MissingClassnameIssueGenerator::MissingClassnameIssueGenerator()
-  : IssueGenerator(MissingClassnameIssue::Type, "Missing entity classname") {
+  : IssueGenerator(MissingClassnameIssue::Type, "Missing entity classname")
+{
   addQuickFix(new MissingClassnameIssueQuickFix());
 }
 
-void MissingClassnameIssueGenerator::doGenerate(EntityNodeBase* node, IssueList& issues) const {
+void MissingClassnameIssueGenerator::doGenerate(
+  EntityNodeBase* node, IssueList& issues) const
+{
   if (!node->entity().hasProperty(EntityPropertyKeys::Classname))
     issues.push_back(new MissingClassnameIssue(node));
 }

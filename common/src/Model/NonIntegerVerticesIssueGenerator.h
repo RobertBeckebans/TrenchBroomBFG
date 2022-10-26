@@ -23,9 +23,12 @@
 
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class NonIntegerVerticesIssueGenerator : public IssueGenerator {
+namespace TrenchBroom
+{
+namespace Model
+{
+class NonIntegerVerticesIssueGenerator : public IssueGenerator
+{
 private:
   class NonIntegerVerticesIssue;
   class NonIntegerVerticesIssueQuickFix;

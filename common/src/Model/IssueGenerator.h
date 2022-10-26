@@ -24,8 +24,10 @@
 #include <string>
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
+namespace TrenchBroom
+{
+namespace Model
+{
 class EntityNodeBase;
 class BrushNode;
 class EntityNode;
@@ -35,7 +37,8 @@ class IssueQuickFix;
 class LayerNode;
 class WorldNode;
 
-class IssueGenerator {
+class IssueGenerator
+{
 protected:
   using IssueList = std::vector<Issue*>;
   using IssueQuickFixList = std::vector<IssueQuickFix*>;

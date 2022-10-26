@@ -25,11 +25,15 @@
 #include <string>
 #include <vector>
 
-namespace TrenchBroom {
-namespace Assets {
-class Quake3ShaderStage {
+namespace TrenchBroom
+{
+namespace Assets
+{
+class Quake3ShaderStage
+{
 public:
-  struct BlendFunc {
+  struct BlendFunc
+  {
     std::string srcFactor;
     std::string destFactor;
 
@@ -51,7 +55,8 @@ public:
     void reset();
   };
   // Doom 3
-  enum class StageLighting {
+  enum class StageLighting
+  {
     None,
     Diffuse,
     Normal,
@@ -65,15 +70,19 @@ public:
   StageLighting lighting;
 };
 
-bool operator==(const Quake3ShaderStage::BlendFunc& lhs, const Quake3ShaderStage::BlendFunc& rhs);
-bool operator!=(const Quake3ShaderStage::BlendFunc& lhs, const Quake3ShaderStage::BlendFunc& rhs);
+bool operator==(
+  const Quake3ShaderStage::BlendFunc& lhs, const Quake3ShaderStage::BlendFunc& rhs);
+bool operator!=(
+  const Quake3ShaderStage::BlendFunc& lhs, const Quake3ShaderStage::BlendFunc& rhs);
 
 bool operator==(const Quake3ShaderStage& lhs, const Quake3ShaderStage& rhs);
 bool operator!=(const Quake3ShaderStage& lhs, const Quake3ShaderStage& rhs);
 
-class Quake3Shader {
+class Quake3Shader
+{
 public:
-  enum class Culling {
+  enum class Culling
+  {
     Front,
     Back,
     None

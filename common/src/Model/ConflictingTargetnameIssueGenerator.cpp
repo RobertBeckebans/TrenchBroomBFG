@@ -30,19 +30,25 @@
 
 #include <string>
 
-namespace TrenchBroom {
-namespace Model {
-class ConflictingTargetnameIssueGenerator::ConflictingTargetnameIssue : public Issue {
+namespace TrenchBroom
+{
+namespace Model
+{
+class ConflictingTargetnameIssueGenerator::ConflictingTargetnameIssue : public Issue
+{
 public:
   static const IssueType Type;
 
 public:
   explicit ConflictingTargetnameIssue(EntityNodeBase* node)
-    : Issue(node) {}
+    : Issue(node)
+  {
+  }
 
   IssueType doGetType() const override { return Type; }
 
-  std::string doGetDescription() const override {
+  std::string doGetDescription() const override
+  {
     const EntityNodeBase* entityNode = static_cast<EntityNodeBase*>(node());
     return entityNode->name() + " has non-unique name key";
   }
@@ -52,13 +58,17 @@ const IssueType ConflictingTargetnameIssueGenerator::ConflictingTargetnameIssue:
   Issue::freeType();
 
 class ConflictingTargetnameIssueGenerator::ConflictingTargetnameIssueQuickFix
-  : public IssueQuickFix {
+  : public IssueQuickFix
+{
 public:
   ConflictingTargetnameIssueQuickFix()
-    : IssueQuickFix(ConflictingTargetnameIssue::Type, "Make name unique") {}
+    : IssueQuickFix(ConflictingTargetnameIssue::Type, "Make name unique")
+  {
+  }
 
 private:
-  void doApply(MapFacade* facade, const Issue* issue) const override {
+  void doApply(MapFacade* facade, const Issue* issue) const override
+  {
     const PushSelection push(facade);
 
     // If world node is affected, the selection will fail, but if nothing is selected,
@@ -76,12 +86,14 @@ private:
 };
 
 ConflictingTargetnameIssueGenerator::ConflictingTargetnameIssueGenerator()
-  : IssueGenerator(ConflictingTargetnameIssue::Type, "Duplicated name") {
+  : IssueGenerator(ConflictingTargetnameIssue::Type, "Duplicated name")
+{
   addQuickFix(new ConflictingTargetnameIssueQuickFix());
 }
 
 void ConflictingTargetnameIssueGenerator::doGenerate(
-  EntityNodeBase* node, IssueList& issues) const {
+  EntityNodeBase* node, IssueList& issues) const
+{
   if (node->hasConflictingTargetname())
     issues.push_back(new ConflictingTargetnameIssue(node));
 }

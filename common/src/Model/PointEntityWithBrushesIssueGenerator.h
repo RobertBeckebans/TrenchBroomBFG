@@ -23,9 +23,12 @@
 
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
-class PointEntityWithBrushesIssueGenerator : public IssueGenerator {
+namespace TrenchBroom
+{
+namespace Model
+{
+class PointEntityWithBrushesIssueGenerator : public IssueGenerator
+{
 private:
   class PointEntityWithBrushesIssue;
   class PointEntityWithBrushesIssueQuickFix;

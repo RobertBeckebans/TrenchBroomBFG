@@ -23,12 +23,17 @@
 #include "Model/MapFacade.h"
 #include "Model/PushSelection.h"
 
-namespace TrenchBroom {
-namespace Model {
+namespace TrenchBroom
+{
+namespace Model
+{
 RemoveEntityPropertiesQuickFix::RemoveEntityPropertiesQuickFix(const IssueType issueType)
-  : IssueQuickFix(issueType, "Delete properties") {}
+  : IssueQuickFix(issueType, "Delete properties")
+{
+}
 
-void RemoveEntityPropertiesQuickFix::doApply(MapFacade* facade, const Issue* issue) const {
+void RemoveEntityPropertiesQuickFix::doApply(MapFacade* facade, const Issue* issue) const
+{
   const PushSelection push(facade);
 
   const EntityPropertyIssue* propIssue = static_cast<const EntityPropertyIssue*>(issue);

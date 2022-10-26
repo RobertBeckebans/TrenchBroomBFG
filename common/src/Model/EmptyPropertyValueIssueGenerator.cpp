@@ -29,9 +29,12 @@
 
 #include <string>
 
-namespace TrenchBroom {
-namespace Model {
-class EmptyPropertyValueIssueGenerator::EmptyPropertyValueIssue : public Issue {
+namespace TrenchBroom
+{
+namespace Model
+{
+class EmptyPropertyValueIssueGenerator::EmptyPropertyValueIssue : public Issue
+{
 public:
   static const IssueType Type;
 
@@ -41,28 +44,39 @@ private:
 public:
   EmptyPropertyValueIssue(EntityNodeBase* node, const std::string& propertyKey)
     : Issue(node)
-    , m_propertyKey(propertyKey) {}
+    , m_propertyKey(propertyKey)
+  {
+  }
 
   IssueType doGetType() const override { return Type; }
 
-  std::string doGetDescription() const override {
+  std::string doGetDescription() const override
+  {
     const EntityNodeBase* entityNode = static_cast<EntityNodeBase*>(node());
-    return "Property '" + m_propertyKey + "' of " + entityNode->name() + " has an empty value.";
+    return "Property '" + m_propertyKey + "' of " + entityNode->name()
+           + " has an empty value.";
   }
 
   const std::string& attributeName() const { return m_propertyKey; }
 };
 
-const IssueType EmptyPropertyValueIssueGenerator::EmptyPropertyValueIssue::Type = Issue::freeType();
+const IssueType EmptyPropertyValueIssueGenerator::EmptyPropertyValueIssue::Type =
+  Issue::freeType();
 
-class EmptyPropertyValueIssueGenerator::EmptyPropertyValueIssueQuickFix : public IssueQuickFix {
+class EmptyPropertyValueIssueGenerator::EmptyPropertyValueIssueQuickFix
+  : public IssueQuickFix
+{
 public:
   EmptyPropertyValueIssueQuickFix()
-    : IssueQuickFix(EmptyPropertyValueIssue::Type, "Delete property") {}
+    : IssueQuickFix(EmptyPropertyValueIssue::Type, "Delete property")
+  {
+  }
 
 private:
-  void doApply(MapFacade* facade, const Issue* issue) const override {
-    const EmptyPropertyValueIssue* actualIssue = static_cast<const EmptyPropertyValueIssue*>(issue);
+  void doApply(MapFacade* facade, const Issue* issue) const override
+  {
+    const EmptyPropertyValueIssue* actualIssue =
+      static_cast<const EmptyPropertyValueIssue*>(issue);
     const std::string& propertyKey = actualIssue->attributeName();
 
     const PushSelection push(facade);
@@ -77,12 +91,16 @@ private:
 };
 
 EmptyPropertyValueIssueGenerator::EmptyPropertyValueIssueGenerator()
-  : IssueGenerator(EmptyPropertyValueIssue::Type, "Empty property value") {
+  : IssueGenerator(EmptyPropertyValueIssue::Type, "Empty property value")
+{
   addQuickFix(new EmptyPropertyValueIssueQuickFix());
 }
 
-void EmptyPropertyValueIssueGenerator::doGenerate(EntityNodeBase* node, IssueList& issues) const {
-  for (const EntityProperty& property : node->entity().properties()) {
+void EmptyPropertyValueIssueGenerator::doGenerate(
+  EntityNodeBase* node, IssueList& issues) const
+{
+  for (const EntityProperty& property : node->entity().properties())
+  {
     if (property.value().empty())
       issues.push_back(new EmptyPropertyValueIssue(node, property.key()));
   }

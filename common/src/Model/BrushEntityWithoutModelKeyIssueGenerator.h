@@ -24,12 +24,15 @@
 
 #include <vector>
 
-namespace TrenchBroom {
-namespace Model {
+namespace TrenchBroom
+{
+namespace Model
+{
 
-// Doom 3 requires all brush based entities to have a "model" key which is the same as the "name"
-// key
-class BrushEntityWithoutModelKeyIssueGenerator : public IssueGenerator {
+// Doom 3 requires all brush based entities to have a "model" key which is the same as the
+// "name" key
+class BrushEntityWithoutModelKeyIssueGenerator : public IssueGenerator
+{
 private:
   class BrushEntityWithoutModelKeyIssue;
   class BrushEntityWithoutModelKeyIssueQuickFix;
