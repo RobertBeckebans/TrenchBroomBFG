@@ -5894,13 +5894,12 @@ you func_remove it after it is shot if it's blocking an entrance.
 ]
 
 @PointClass base(func_door) model({{
-	proxymodel != null -> { "path": proxymodel },
+	proxymodel -> { "path": proxymodel },
 	{ "path": model }
 }})= func_door_model : "Inherits from a func_door but uses a model and is a FGD PointClass so it displays correctly in TrenchBroom.
 Use it to place all kinds of models
 "
 [
-	angles(string) : "" : "0 0 0"
 	model(string) : "Model Selection (ex mapobjects/model.obj)"
 	proxymodel(string) : "A proxy model in OBJ file format automatically set by RBDoom so it can be displayed in TrenchBroom"
 ]
@@ -6056,7 +6055,7 @@ Trigger it to fade it in and/or out
 ]
 
 @PointClass base(func_mover) model({{
-	proxymodel != null -> { "path": proxymodel },
+	proxymodel -> { "path": proxymodel },
 	{ "path": model }
 }})= func_mover_amodel : "Mover with a model.  Movers are objects meant to be controlled through scripts.
 "
@@ -6107,12 +6106,11 @@ Pendulum frequency is a physical constant based on the length of the beam and gr
 ]
 
 @PointClass base(func_plat) model({{
-	proxymodel != null -> { "path": proxymodel },
+	proxymodel -> { "path": proxymodel },
 	{ "path": model }
 }})= func_plat_model : "Inherits from a func_plat but uses a model and is a FGD PointClass so it displays correctly in TrenchBroom.
 "
 [
-	angles(string) : "" : "0 0 0"
 	model(string) : "Model Selection (ex mapobjects/model.obj)"
 	proxymodel(string) : "A proxy model in OBJ file format automatically set by RBDoom so it can be displayed in TrenchBroom"
 ]
@@ -6160,12 +6158,11 @@ Pendulum frequency is a physical constant based on the length of the beam and gr
 ]
 
 @PointClass base(func_rotating) model({{
-	proxymodel != null -> { "path": proxymodel },
+	proxymodel -> { "path": proxymodel },
 	{ "path": model }
 }})= func_rotating_model : "Inherits from a func_rotating but uses a model and is a FGD PointClass so it displays correctly in TrenchBroom.
 "
 [
-	angles(string) : "" : "0 0 0"
 	model(string) : "Model Selection (ex mapobjects/model.obj)"
 	proxymodel(string) : "A proxy model in OBJ file format automatically set by RBDoom so it can be displayed in TrenchBroom"
 ]
@@ -9148,13 +9145,12 @@ PDA's contain vidoes, audio, e-mail, and security clearances.
 ]
 
 @PointClass base(func_static) color(0 127 204) model({{
-	proxymodel != null -> { "path": proxymodel },
+	proxymodel -> { "path": proxymodel },
 	{ "path": model }
 }})= misc_model : "Inherits from a func_static but uses a model and is a FGD PointClass so it displays correctly in TrenchBroom.
 Use it to place all kinds of models
 "
 [
-	angles(string) : "" : "0 0 0"
 	model(string) : "Model Selection (ex mapobjects/model.obj)"
 	proxymodel(string) : "A proxy model in OBJ file format automatically set by RBDoom so it can be displayed in TrenchBroom"
 ]
