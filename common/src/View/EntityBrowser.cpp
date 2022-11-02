@@ -197,7 +197,10 @@ void EntityBrowser::entityDefinitionsDidChange()
 void EntityBrowser::preferenceDidChange(const IO::Path& path)
 {
   auto document = kdl::mem_lock(m_document);
-  if (document->isGamePathPreference(path))
+  // RB: support Icon size
+  if (
+    path == Preferences::TextureBrowserIconSize.path()
+    || document->isGamePathPreference(path))
   {
     reload();
   }

@@ -139,12 +139,15 @@ void EntityBrowserView::setFilterText(const std::string& filterText)
 
 void EntityBrowserView::doInitLayout(Layout& layout)
 {
+  // RB: use Icon size option here as well
+  const float scaleFactor = pref(Preferences::TextureBrowserIconSize);
+
   layout.setOuterMargin(5.0f);
   layout.setGroupMargin(5.0f);
   layout.setRowMargin(5.0f);
   layout.setCellMargin(5.0f);
-  layout.setCellWidth(93.0f, 93.0f);
-  layout.setCellHeight(64.0f, 128.0f);
+  layout.setCellWidth(scaleFactor * 93.0f, scaleFactor * 93.0f);
+  layout.setCellHeight(scaleFactor * 64.0f, scaleFactor * 128.0f);
   layout.setMaxUpScale(1.5f);
 }
 
@@ -222,7 +225,7 @@ void EntityBrowserView::addEntityToLayout(
       });
 
     const auto* frame = m_entityModelManager.frame(spec);
-    const auto modelScale = vm::vec3f{Assets::safeGetModelScale(
+    auto modelScale = vm::vec3f{Assets::safeGetModelScale(
       definition->modelDefinition(),
       EL::NullVariableStore{},
       m_defaultScaleModelExpression)};
@@ -233,6 +236,17 @@ void EntityBrowserView::addEntityToLayout(
 
     if (frame != nullptr)
     {
+      // RB: use Icon size option here as well but only scale png sprites
+      modelOrientation = frame->orientation();
+      if (modelOrientation != Assets::Orientation::Oriented)
+      {
+        const float scaleFactor = pref(Preferences::TextureBrowserIconSize);
+        modelScale[0] *= scaleFactor;
+        modelScale[1] *= scaleFactor;
+        modelScale[2] *= scaleFactor;
+      }
+      // RB end
+
       const auto bounds = frame->bounds();
       const auto center = bounds.center();
       const auto transform =
@@ -240,7 +254,6 @@ void EntityBrowserView::addEntityToLayout(
         * vm::scaling_matrix(modelScale) * vm::translation_matrix(-center);
       rotatedBounds = bounds.transform(transform);
       modelRenderer = m_entityModelManager.renderer(spec);
-      modelOrientation = frame->orientation();
     }
     else
     {
