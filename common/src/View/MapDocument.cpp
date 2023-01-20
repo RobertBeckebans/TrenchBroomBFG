@@ -1800,42 +1800,49 @@ Model::EntityNode* MapDocument::createPointEntity(
   std::string uniqueName;
   m_world->generateUniqueTargetnameForClassname(definition->name(), uniqueName);
 
-  auto entity = Model::Entity{
+  auto entity = Model::Entity
+  {
     m_world->entityPropertyConfig(),
-    {{Model::EntityPropertyKeys::Classname, definition->name()},
-     {Model::EntityPropertyKeys::Targetname, uniqueName}}}};
-  
-  if (m_world->entityPropertyConfig().setDefaultProperties)
-  {
-    Model::setDefaultProperties(
-      m_world->entityPropertyConfig(),
-      *definition,
-      entity,
-      Model::SetDefaultPropertyMode::SetAll);
+    {
+      {Model::EntityPropertyKeys::Classname, definition->name()},
+      {
+        Model::EntityPropertyKeys::Targetname, uniqueName
+      }
+    }
   }
+};
 
-  auto* entityNode = new Model::EntityNode{std::move(entity)};
+if (m_world->entityPropertyConfig().setDefaultProperties)
+{
+  Model::setDefaultProperties(
+    m_world->entityPropertyConfig(),
+    *definition,
+    entity,
+    Model::SetDefaultPropertyMode::SetAll);
+}
 
-  auto transaction = Transaction{*this, "Create " + definition->name()};
-  deselectAll();
-  if (addNodes({{parentForNodes(), {entityNode}}}).empty())
-  {
-    transaction.cancel();
-    return nullptr;
-  }
-  selectNodes({entityNode});
-  if (!translateObjects(delta))
-  {
-    transaction.cancel();
-    return nullptr;
-  }
+auto* entityNode = new Model::EntityNode{std::move(entity)};
 
-  if (!transaction.commit())
-  {
-    return nullptr;
-  }
+auto transaction = Transaction{*this, "Create " + definition->name()};
+deselectAll();
+if (addNodes({{parentForNodes(), {entityNode}}}).empty())
+{
+  transaction.cancel();
+  return nullptr;
+}
+selectNodes({entityNode});
+if (!translateObjects(delta))
+{
+  transaction.cancel();
+  return nullptr;
+}
 
-  return entityNode;
+if (!transaction.commit())
+{
+  return nullptr;
+}
+
+return entityNode;
 }
 
 Model::EntityNode* MapDocument::createBrushEntity(
@@ -1872,7 +1879,7 @@ Model::EntityNode* MapDocument::createBrushEntity(
   entity.addOrUpdateProperty(
     m_world->entityPropertyConfig(), Model::EntityPropertyKeys::Model, uniqueName);
   // RB end
-    
+
   if (m_world->entityPropertyConfig().setDefaultProperties)
   {
     Model::setDefaultProperties(
