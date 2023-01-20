@@ -35,14 +35,12 @@
 
 namespace TrenchBroom
 {
-template <typename T, size_t S, typename U>
-class AABBTree;
+template <typename T, typename U>
+class octree;
 
 namespace Model
 {
 class EntityNodeIndex;
-enum class BrushError;
-class BrushFace;
 class IssueQuickFix;
 enum class MapFormat;
 class PickResult;
@@ -58,7 +56,7 @@ private:
   std::unique_ptr<EntityNodeIndex> m_entityNodeIndex;
   std::unique_ptr<ValidatorRegistry> m_validatorRegistry;
 
-  using NodeTree = AABBTree<FloatType, 3, Node*>;
+  using NodeTree = octree<FloatType, Node*>;
   std::unique_ptr<NodeTree> m_nodeTree;
   bool m_updateNodeTree;
 
@@ -72,6 +70,9 @@ public:
     std::initializer_list<EntityProperty> properties,
     MapFormat mapFormat);
   ~WorldNode() override;
+
+  using Node::entityPropertyConfig;
+  EntityPropertyConfig& entityPropertyConfig();
 
   MapFormat mapFormat() const;
 

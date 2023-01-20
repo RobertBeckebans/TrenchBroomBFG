@@ -128,10 +128,9 @@ set(COMMON_TEST_SOURCE
         "${COMMON_TEST_SOURCE_DIR}/View/UpdateLinkedGroupsCommandTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/View/UpdateLinkedGroupsHelperTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/View/ValidatorTest.cpp"
-        "${COMMON_TEST_SOURCE_DIR}/AABBTreeStressTest.cpp"
-        "${COMMON_TEST_SOURCE_DIR}/AABBTreeTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/EnsureTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/NotifierTest.cpp"
+        "${COMMON_TEST_SOURCE_DIR}/octree_test.cpp"
         "${COMMON_TEST_SOURCE_DIR}/PreferencesTest.cpp"
         "${COMMON_TEST_SOURCE_DIR}/StackWalkerTest.cpp"
 )
@@ -202,19 +201,11 @@ macro(configure_test_target TARGET)
     add_custom_command(TARGET ${TARGET} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${APP_RESOURCE_DIR}/graphics/images" "${TEST_RESOURCE_DEST_DIR}/images")
 
-    # Clear all fixtures
+    # Copy fixtures
     add_custom_command(TARGET ${TARGET} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E rm -rf "${TEST_FIXTURE_DEST_DIR}")
-
-    # Copy test fixtures
-    add_custom_command(TARGET ${TARGET} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory "${TEST_FIXTURE_SOURCE_DIR}" "${TEST_FIXTURE_DEST_DIR}/test")
-
-    # Copy game config files
-    add_custom_command(TARGET ${TARGET} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory "${APP_RESOURCE_DIR}/games" "${TEST_FIXTURE_DEST_DIR}/games")
-
-    add_custom_command(TARGET ${TARGET} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E rm -rf "${TEST_FIXTURE_DEST_DIR}"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "${TEST_FIXTURE_SOURCE_DIR}" "${TEST_FIXTURE_DEST_DIR}/test"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "${APP_RESOURCE_DIR}/games" "${TEST_FIXTURE_DEST_DIR}/games"
             COMMAND ${CMAKE_COMMAND} -E copy_directory "${APP_RESOURCE_DIR}/games-testing" "${TEST_FIXTURE_DEST_DIR}/games")
 endmacro()
 

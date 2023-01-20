@@ -757,8 +757,7 @@ bool MapDocument::pasteNodes(const std::vector<Model::Node*>& nodes)
         nodesToAdd[parent].push_back(group);
       },
       [&](auto&& thisLambda, Model::EntityNode* entityNode) {
-        if (Model::isWorldspawn(
-              entityNode->entity().classname(), entityNode->entity().properties()))
+        if (Model::isWorldspawn(entityNode->entity().classname()))
         {
           entityNode->visitChildren(thisLambda);
           nodesToDetach.push_back(entityNode);
@@ -782,8 +781,7 @@ bool MapDocument::pasteNodes(const std::vector<Model::Node*>& nodes)
 
   for (auto* node : nodesToDetach)
   {
-    auto* nodeParent = node->parent();
-    if (nodeParent != nullptr)
+    if (auto* nodeParent = node->parent())
     {
       nodeParent->removeChild(node);
     }
@@ -821,14 +819,18 @@ bool MapDocument::pasteNodes(const std::vector<Model::Node*>& nodes)
     }
   }
 
-  const std::vector<Model::Node*> addedNodes = addNodes(nodesToAdd);
+  auto transaction = Transaction{*this, "Paste Nodes"};
+
+  const auto addedNodes = addNodes(nodesToAdd);
   if (addedNodes.empty())
+  {
+    transaction.cancel();
     return false;
+  }
 
   deselectAll();
-
-  const auto nodesToSelect = Model::collectSelectableNodes(addedNodes, editorContext());
-  selectNodes(nodesToSelect);
+  selectNodes(Model::collectSelectableNodes(addedNodes, editorContext()));
+  transaction.commit();
 
   return true;
 }
@@ -1229,23 +1231,70 @@ void MapDocument::selectInverse()
 
 void MapDocument::selectNodesWithFilePosition(const std::vector<size_t>& positions)
 {
-  const auto nodes = kdl::vec_filter(
-    Model::collectSelectableNodes(
-      std::vector<Model::Node*>{m_world.get()}, *m_editorContext),
-    [&](const auto* node) {
-      for (const size_t position : positions)
+  auto nodesToSelect = std::vector<Model::Node*>{};
+  const auto hasFilePosition = [&](const auto* node) {
+    return std::any_of(positions.begin(), positions.end(), [&](const auto position) {
+      return node->containsLine(position);
+    });
+  };
+
+  m_world->accept(kdl::overload(
+    [&](auto&& thisLambda, Model::WorldNode* worldNode) {
+      worldNode->visitChildren(thisLambda);
+    },
+    [&](auto&& thisLambda, Model::LayerNode* layerNode) {
+      layerNode->visitChildren(thisLambda);
+    },
+    [&](auto&& thisLambda, Model::GroupNode* groupNode) {
+      if (hasFilePosition(groupNode))
       {
-        if (node->containsLine(position))
+        if (m_editorContext->selectable(groupNode))
         {
-          return true;
+          nodesToSelect.push_back(groupNode);
+        }
+        else
+        {
+          groupNode->visitChildren(thisLambda);
         }
       }
-      return false;
-    });
+    },
+    [&](auto&& thisLambda, Model::EntityNode* entityNode) {
+      if (hasFilePosition(entityNode))
+      {
+        if (m_editorContext->selectable(entityNode))
+        {
+          nodesToSelect.push_back(entityNode);
+        }
+        else
+        {
+          const auto previousCount = nodesToSelect.size();
+          entityNode->visitChildren(thisLambda);
+          if (previousCount == nodesToSelect.size())
+          {
+            // no child was selected, select all children
+            nodesToSelect = kdl::vec_concat(
+              std::move(nodesToSelect),
+              Model::collectSelectableNodes(entityNode->children(), *m_editorContext));
+          }
+        }
+      }
+    },
+    [&](Model::BrushNode* brushNode) {
+      if (hasFilePosition(brushNode) && m_editorContext->selectable(brushNode))
+      {
+        nodesToSelect.push_back(brushNode);
+      }
+    },
+    [&](Model::PatchNode* patchNode) {
+      if (hasFilePosition(patchNode) && m_editorContext->selectable(patchNode))
+      {
+        nodesToSelect.push_back(patchNode);
+      }
+    }));
 
   auto transaction = Transaction{*this, "Select by Line Number"};
   deselectAll();
-  selectNodes(nodes);
+  selectNodes(nodesToSelect);
   transaction.commit();
 }
 
@@ -1751,10 +1800,21 @@ Model::EntityNode* MapDocument::createPointEntity(
   std::string uniqueName;
   m_world->generateUniqueTargetnameForClassname(definition->name(), uniqueName);
 
-  auto* entityNode = new Model::EntityNode{Model::Entity{
+  auto entity = Model::Entity{
     m_world->entityPropertyConfig(),
     {{Model::EntityPropertyKeys::Classname, definition->name()},
      {Model::EntityPropertyKeys::Targetname, uniqueName}}}};
+  
+  if (m_world->entityPropertyConfig().setDefaultProperties)
+  {
+    Model::setDefaultProperties(
+      m_world->entityPropertyConfig(),
+      *definition,
+      entity,
+      Model::SetDefaultPropertyMode::SetAll);
+  }
+
+  auto* entityNode = new Model::EntityNode{std::move(entity)};
 
   auto transaction = Transaction{*this, "Create " + definition->name()};
   deselectAll();
@@ -1786,27 +1846,16 @@ Model::EntityNode* MapDocument::createBrushEntity(
   const auto brushes = selectedNodes().brushes();
   assert(!brushes.empty());
 
-  auto entity = Model::Entity{};
-
   // if all brushes belong to the same entity, and that entity is not worldspawn, copy its
   // properties
-  auto* entityTemplate = brushes.front()->entity();
-  if (entityTemplate != m_world.get())
-  {
-    for (auto* brush : brushes)
-    {
-      if (brush->entity() != entityTemplate)
-      {
-        entityTemplate = nullptr;
-        break;
-      }
-    }
-
-    if (entityTemplate != nullptr)
-    {
-      entity = entityTemplate->entity();
-    }
-  }
+  auto entity =
+    (brushes.front()->entity() != m_world.get()
+     && std::all_of(
+       std::next(brushes.begin()),
+       brushes.end(),
+       [&](const auto* brush) { return brush->entity() == brushes.front()->entity(); }))
+      ? brushes.front()->entity()->entity()
+      : Model::Entity{};
 
   entity.addOrUpdateProperty(
     m_world->entityPropertyConfig(),
@@ -1822,6 +1871,16 @@ Model::EntityNode* MapDocument::createBrushEntity(
     m_world->entityPropertyConfig(), Model::EntityPropertyKeys::Targetname, uniqueName);
   entity.addOrUpdateProperty(
     m_world->entityPropertyConfig(), Model::EntityPropertyKeys::Model, uniqueName);
+  // RB end
+    
+  if (m_world->entityPropertyConfig().setDefaultProperties)
+  {
+    Model::setDefaultProperties(
+      m_world->entityPropertyConfig(),
+      *definition,
+      entity,
+      Model::SetDefaultPropertyMode::SetAll);
+  }
 
   auto* entityNode = new Model::EntityNode{std::move(entity)};
 
@@ -2768,50 +2827,51 @@ bool MapDocument::transformObjects(
   const std::string& commandName, const vm::mat4x4& transformation)
 {
   auto nodesToTransform = std::vector<Model::Node*>{};
-
-  const auto addEntity = [&](auto* node) {
-    if (auto* entity = node->entity())
-    {
-      if (entity->childSelectionCount() == entity->childCount())
-      {
-        nodesToTransform.push_back(entity);
-      }
-    }
-  };
+  auto entitiesToTransform = std::unordered_map<Model::EntityNodeBase*, size_t>{};
 
   for (auto* node : m_selectedNodes)
   {
     node->accept(kdl::overload(
-      [&](
-        auto&& thisLambda, Model::WorldNode* world) { world->visitChildren(thisLambda); },
-      [&](
-        auto&& thisLambda, Model::LayerNode* layer) { layer->visitChildren(thisLambda); },
-      [&](auto&& thisLambda, Model::GroupNode* group) {
-        nodesToTransform.push_back(group);
-        group->visitChildren(thisLambda);
+      [&](auto&& thisLambda, Model::WorldNode* worldNode) {
+        worldNode->visitChildren(thisLambda);
       },
-      [&](auto&& thisLambda, Model::EntityNode* entity) {
-        if (!entity->hasChildren())
+      [&](auto&& thisLambda, Model::LayerNode* layerNode) {
+        layerNode->visitChildren(thisLambda);
+      },
+      [&](auto&& thisLambda, Model::GroupNode* groupNode) {
+        nodesToTransform.push_back(groupNode);
+        groupNode->visitChildren(thisLambda);
+      },
+      [&](auto&& thisLambda, Model::EntityNode* entityNode) {
+        if (!entityNode->hasChildren())
         {
-          nodesToTransform.push_back(entity);
+          nodesToTransform.push_back(entityNode);
         }
         else
         {
-          entity->visitChildren(thisLambda);
+          entityNode->visitChildren(thisLambda);
         }
       },
-      [&](Model::BrushNode* brush) {
-        nodesToTransform.push_back(brush);
-        addEntity(brush);
+      [&](Model::BrushNode* brushNode) {
+        nodesToTransform.push_back(brushNode);
+        entitiesToTransform[brushNode->entity()]++;
       },
-      [&](Model::PatchNode* patch) {
-        nodesToTransform.push_back(patch);
-        addEntity(patch);
+      [&](Model::PatchNode* patchNode) {
+        nodesToTransform.push_back(patchNode);
+        entitiesToTransform[patchNode->entity()]++;
       }));
   }
 
-  // brush entites can be added many times
-  nodesToTransform = kdl::vec_sort_and_remove_duplicates(std::move(nodesToTransform));
+  // add entities if all of their children are transformed
+  for (const auto& [entityNode, transformedChildCount] : entitiesToTransform)
+  {
+    if (
+      transformedChildCount == entityNode->childCount()
+      && !Model::isWorldspawn(entityNode->entity().classname()))
+    {
+      nodesToTransform.push_back(entityNode);
+    }
+  }
 
   using TransformResult =
     kdl::result<std::pair<Model::Node*, Model::NodeContents>, Model::BrushError>;
@@ -3528,6 +3588,29 @@ bool MapDocument::canClearProtectedProperties() const
   }
 
   return canUpdateLinkedGroups(kdl::vec_element_cast<Model::Node*>(entityNodes));
+}
+
+void MapDocument::setDefaultProperties(const Model::SetDefaultPropertyMode mode)
+{
+  const auto entityNodes = allSelectedEntityNodes();
+  applyAndSwap(
+    *this,
+    "Reset Default Properties",
+    entityNodes,
+    findContainingLinkedGroups(*m_world, entityNodes),
+    kdl::overload(
+      [](Model::Layer&) { return true; },
+      [](Model::Group&) { return true; },
+      [&](Model::Entity& entity) {
+        if (const auto* definition = entity.definition())
+        {
+          Model::setDefaultProperties(
+            m_world->entityPropertyConfig(), *definition, entity, mode);
+        }
+        return true;
+      },
+      [](Model::Brush&) { return true; },
+      [](Model::BezierPatch&) { return true; }));
 }
 
 bool MapDocument::extrudeBrushes(

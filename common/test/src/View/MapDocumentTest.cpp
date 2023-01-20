@@ -21,6 +21,7 @@
 #include "TestUtils.h"
 
 #include "Assets/EntityDefinition.h"
+#include "Assets/PropertyDefinition.h"
 #include "Exceptions.h"
 #include "IO/WorldReader.h"
 #include "Model/BrushBuilder.h"
@@ -35,6 +36,7 @@
 #include "Model/WorldNode.h"
 #include "View/MapDocumentCommandFacade.h"
 
+#include "kdl/map_utils.h"
 #include <kdl/result.h>
 #include <kdl/vector_utils.h>
 
@@ -250,6 +252,150 @@ TEST_CASE_METHOD(MapDocumentTest, "Brush Node Selection")
   }
 }
 
+TEST_CASE_METHOD(MapDocumentTest, "selectByLineNumber")
+{
+  /*
+  - defaultLayer
+    - brush                    4,  5
+    - pointEntity             10, 15
+    - patch                   16, 20
+    - brushEntity             20, 30
+      - brushInEntity1        23, 25
+      - brushInEntity2        26, 29
+    - outerGroup              31, 50
+      - brushInOuterGroup     32, 38
+      - innerGroup            39, 49
+        - brushInInnerGroup   43, 48
+  */
+
+  auto* brush = createBrushNode("brush");
+  auto* pointEntity = new Model::EntityNode{Model::Entity{}};
+  auto* patch = createPatchNode("patch");
+
+  auto* brushEntity = new Model::EntityNode{Model::Entity{}};
+  auto* brushInEntity1 = createBrushNode("brushInEntity1");
+  auto* brushInEntity2 = createBrushNode("brushInEntity2");
+
+  auto* outerGroup = new Model::GroupNode{Model::Group{"outerGroup"}};
+  auto* brushInOuterGroup = createBrushNode("brushInOuterGroup");
+  auto* innerGroup = new Model::GroupNode{Model::Group{"innerGroup"}};
+  auto* brushInInnerGroup = createBrushNode("brushInInnerGroup");
+
+  brush->setFilePosition(4, 2);
+  pointEntity->setFilePosition(10, 5);
+  patch->setFilePosition(16, 4);
+  brushEntity->setFilePosition(20, 10);
+  brushInEntity1->setFilePosition(23, 2);
+  brushInEntity2->setFilePosition(26, 3);
+  outerGroup->setFilePosition(31, 19);
+  brushInOuterGroup->setFilePosition(32, 6);
+  innerGroup->setFilePosition(39, 10);
+  brushInInnerGroup->setFilePosition(43, 5);
+
+  const auto map = std::map<const Model::Node*, std::string>{
+    {brush, "brush"},
+    {pointEntity, "pointEntity"},
+    {patch, "patch"},
+    {brushEntity, "brushEntity"},
+    {brushInEntity1, "brushInEntity1"},
+    {brushInEntity2, "brushInEntity2"},
+    {outerGroup, "outerGroup"},
+    {brushInOuterGroup, "brushInOuterGroup"},
+    {innerGroup, "innerGroup"},
+    {brushInInnerGroup, "brushInInnerGroup"},
+  };
+
+  const auto mapNodeNames = [&](const auto& nodes) {
+    return kdl::vec_transform(nodes, [&](const Model::Node* node) {
+      return kdl::map_find_or_default(map, node, std::string{"<unknown>"});
+    });
+  };
+
+  document->addNodes({
+    {document->world()->defaultLayer(),
+     {brush, pointEntity, patch, brushEntity, outerGroup}},
+  });
+
+  document->addNodes({
+    {brushEntity, {brushInEntity1, brushInEntity2}},
+    {outerGroup, {brushInOuterGroup, innerGroup}},
+  });
+
+  document->addNodes({{innerGroup, {brushInInnerGroup}}});
+
+  document->deselectAll();
+
+  using T = std::tuple<std::vector<size_t>, std::vector<std::string>>;
+
+  SECTION("outer group is closed")
+  {
+    const auto [lineNumbers, expectedNodeNames] = GENERATE(values<T>({
+      {{0}, {}},
+      {{4}, {"brush"}},
+      {{5}, {"brush"}},
+      {{4, 5}, {"brush"}},
+      {{6}, {}},
+      {{7}, {}},
+      {{12}, {"pointEntity"}},
+      {{16}, {"patch"}},
+      {{20}, {"brushInEntity1", "brushInEntity2"}},
+      {{24}, {"brushInEntity1"}},
+      {{26}, {"brushInEntity2"}},
+      {{31}, {"outerGroup"}},
+      {{32}, {"outerGroup"}},
+      {{39}, {"outerGroup"}},
+      {{43}, {"outerGroup"}},
+      {{0, 4, 12, 24, 32}, {"brush", "pointEntity", "brushInEntity1", "outerGroup"}},
+    }));
+
+    CAPTURE(lineNumbers);
+
+    document->selectNodesWithFilePosition(lineNumbers);
+    CHECK_THAT(
+      mapNodeNames(document->selectedNodes().nodes()),
+      Catch::Matchers::UnorderedEquals(expectedNodeNames));
+  }
+
+  SECTION("outer group is open")
+  {
+    document->openGroup(outerGroup);
+
+    const auto [lineNumbers, expectedNodeNames] = GENERATE(values<T>({
+      {{31}, {}},
+      {{32}, {"brushInOuterGroup"}},
+      {{39}, {"innerGroup"}},
+      {{43}, {"innerGroup"}},
+    }));
+
+    CAPTURE(lineNumbers);
+
+    document->selectNodesWithFilePosition(lineNumbers);
+    CHECK_THAT(
+      mapNodeNames(document->selectedNodes().nodes()),
+      Catch::Matchers::UnorderedEquals(expectedNodeNames));
+  }
+
+  SECTION("inner group is open")
+  {
+    document->openGroup(outerGroup);
+    document->openGroup(innerGroup);
+
+    const auto [lineNumbers, expectedNodeNames] = GENERATE(values<T>({
+      {{31}, {}},
+      {{32}, {}},
+      {{39}, {}},
+      {{43}, {"brushInInnerGroup"}},
+    }));
+
+    CAPTURE(lineNumbers);
+
+    document->selectNodesWithFilePosition(lineNumbers);
+    CHECK_THAT(
+      mapNodeNames(document->selectedNodes().nodes()),
+      Catch::Matchers::UnorderedEquals(expectedNodeNames));
+  }
+}
+
 TEST_CASE_METHOD(MapDocumentTest, "canUpdateLinkedGroups")
 {
   auto* innerGroupNode = new Model::GroupNode{Model::Group{"inner"}};
@@ -308,6 +454,38 @@ TEST_CASE_METHOD(MapDocumentTest, "createPointEntity")
 
     CHECK(existingNode->entity().origin() == origin);
   }
+
+  SECTION("Default entity properties")
+  {
+    // set up a document with an entity config having setDefaultProperties set to true
+    game->setWorldNodeToLoad(std::make_unique<Model::WorldNode>(
+      Model::EntityPropertyConfig{{}, true(setDefaultProperties)},
+      Model::Entity{},
+      Model::MapFormat::Standard));
+    document->loadDocument(
+      Model::MapFormat::Standard, document->worldBounds(), game, IO::Path{});
+
+    auto* definitionWithDefaults = new Assets::PointEntityDefinition{
+      "some_name",
+      Color{},
+      vm::bbox3{32.0},
+      "",
+      {
+        std::make_shared<Assets::StringPropertyDefinition>(
+          "some_default_prop", "", "", !true(readOnly), "value"),
+      },
+      {}};
+    document->setEntityDefinitions({definitionWithDefaults});
+
+    auto* entityNode = document->createPointEntity(definitionWithDefaults, {0, 0, 0});
+    REQUIRE(entityNode != nullptr);
+    CHECK_THAT(
+      entityNode->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {Model::EntityPropertyKeys::Classname, "some_name"},
+        {"some_default_prop", "value"},
+      }));
+  }
 }
 
 TEST_CASE_METHOD(MapDocumentTest, "createBrushEntity")
@@ -347,6 +525,275 @@ TEST_CASE_METHOD(MapDocumentTest, "createBrushEntity")
     auto* newEntityNode = document->createBrushEntity(m_brushEntityDef);
     CHECK(newEntityNode != nullptr);
     CHECK(newEntityNode->entity().hasProperty("prop", "value"));
+  }
+
+  SECTION("Default entity properties")
+  {
+    // set up a document with an entity config having setDefaultProperties set to true
+    game->setWorldNodeToLoad(std::make_unique<Model::WorldNode>(
+      Model::EntityPropertyConfig{{}, true(setDefaultProperties)},
+      Model::Entity{},
+      Model::MapFormat::Standard));
+    document->loadDocument(
+      Model::MapFormat::Standard, document->worldBounds(), game, IO::Path{});
+
+    auto* definitionWithDefaults = new Assets::BrushEntityDefinition{
+      "some_name",
+      Color{},
+      "",
+      {
+        std::make_shared<Assets::StringPropertyDefinition>(
+          "some_default_prop", "", "", !true(readOnly), "value"),
+      }};
+    document->setEntityDefinitions({definitionWithDefaults});
+
+    auto* brushNode = createBrushNode("some_texture");
+    document->addNodes({{document->parentForNodes(), {brushNode}}});
+
+    document->selectNodes({brushNode});
+    auto* entityNode = document->createBrushEntity(definitionWithDefaults);
+    REQUIRE(entityNode != nullptr);
+    CHECK_THAT(
+      entityNode->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {Model::EntityPropertyKeys::Classname, "some_name"},
+        {"some_default_prop", "value"},
+      }));
+  }
+}
+
+TEST_CASE_METHOD(MapDocumentTest, "resetDefaultProperties")
+{
+  document->selectAllNodes();
+  document->deleteObjects();
+
+  // Note: The test document does not automatically set the default properties
+  auto* definitionWithDefaults = new Assets::PointEntityDefinition{
+    "some_name",
+    Color{},
+    vm::bbox3{32.0},
+    "",
+    {
+      std::make_shared<Assets::StringPropertyDefinition>(
+        "some_prop", "", "", !true(readOnly)),
+      std::make_shared<Assets::StringPropertyDefinition>(
+        "default_prop_a", "", "", !true(readOnly), "default_value_a"),
+      std::make_shared<Assets::StringPropertyDefinition>(
+        "default_prop_b", "", "", !true(readOnly), "default_value_b"),
+    },
+    {}};
+  document->setEntityDefinitions({definitionWithDefaults});
+
+  auto* entityNodeWithoutDefinition = new Model::EntityNode{
+    document->world()->entityPropertyConfig(),
+    {
+      {"classname", "some_class"},
+    }};
+  document->addNodes({{document->parentForNodes(), {entityNodeWithoutDefinition}}});
+  document->selectNodes({entityNodeWithoutDefinition});
+  document->setProperty("some_prop", "some_value");
+  document->deselectAll();
+
+  auto* entityNodeWithProp =
+    document->createPointEntity(definitionWithDefaults, {0, 0, 0});
+  REQUIRE(entityNodeWithProp != nullptr);
+  REQUIRE(entityNodeWithProp->entity().definition() == definitionWithDefaults);
+  document->selectNodes({entityNodeWithProp});
+  document->setProperty("some_prop", "some_value");
+  document->deselectAll();
+
+  auto* entityNodeWithPropA =
+    document->createPointEntity(definitionWithDefaults, {0, 0, 0});
+  REQUIRE(entityNodeWithPropA != nullptr);
+  REQUIRE(entityNodeWithPropA->entity().definition() == definitionWithDefaults);
+  document->selectNodes({entityNodeWithPropA});
+  document->setProperty("some_prop", "some_value");
+  document->setProperty("default_prop_a", "default_value_a");
+  document->deselectAll();
+
+  auto* entityNodeWithPropAWithValueChanged =
+    document->createPointEntity(definitionWithDefaults, {0, 0, 0});
+  REQUIRE(entityNodeWithPropAWithValueChanged != nullptr);
+  REQUIRE(
+    entityNodeWithPropAWithValueChanged->entity().definition() == definitionWithDefaults);
+  document->selectNodes({entityNodeWithPropAWithValueChanged});
+  document->setProperty("default_prop_a", "some_other_value");
+  document->deselectAll();
+
+  auto* entityNodeWithPropsAB =
+    document->createPointEntity(definitionWithDefaults, {0, 0, 0});
+  REQUIRE(entityNodeWithPropsAB != nullptr);
+  REQUIRE(entityNodeWithPropsAB->entity().definition() == definitionWithDefaults);
+  document->selectNodes({entityNodeWithPropsAB});
+  document->setProperty("some_prop", "some_value");
+  document->setProperty("default_prop_a", "default_value_a");
+  document->setProperty("default_prop_b", "yet_another_value");
+  document->deselectAll();
+
+  REQUIRE_THAT(
+    entityNodeWithoutDefinition->entity().properties(),
+    Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+      {"classname", "some_class"},
+      {"some_prop", "some_value"},
+    }));
+  REQUIRE_THAT(
+    entityNodeWithProp->entity().properties(),
+    Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+      {"classname", "some_name"},
+      {"some_prop", "some_value"},
+    }));
+  REQUIRE_THAT(
+    entityNodeWithPropA->entity().properties(),
+    Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+      {"classname", "some_name"},
+      {"some_prop", "some_value"},
+      {"default_prop_a", "default_value_a"},
+    }));
+  REQUIRE_THAT(
+    entityNodeWithPropAWithValueChanged->entity().properties(),
+    Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+      {"classname", "some_name"},
+      {"default_prop_a", "some_other_value"},
+    }));
+  REQUIRE_THAT(
+    entityNodeWithPropsAB->entity().properties(),
+    Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+      {"classname", "some_name"},
+      {"some_prop", "some_value"},
+      {"default_prop_a", "default_value_a"},
+      {"default_prop_b", "yet_another_value"},
+    }));
+
+  document->selectNodes(
+    {entityNodeWithoutDefinition,
+     entityNodeWithProp,
+     entityNodeWithPropA,
+     entityNodeWithPropAWithValueChanged,
+     entityNodeWithPropsAB});
+
+  SECTION("Set Existing Default Properties")
+  {
+    document->setDefaultProperties(Model::SetDefaultPropertyMode::SetExisting);
+
+    CHECK_THAT(
+      entityNodeWithoutDefinition->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {"classname", "some_class"},
+        {"some_prop", "some_value"},
+      }));
+    CHECK_THAT(
+      entityNodeWithProp->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {"classname", "some_name"},
+        {"some_prop", "some_value"},
+      }));
+    CHECK_THAT(
+      entityNodeWithPropA->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {"classname", "some_name"},
+        {"some_prop", "some_value"},
+        {"default_prop_a", "default_value_a"},
+      }));
+    CHECK_THAT(
+      entityNodeWithPropAWithValueChanged->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {"classname", "some_name"},
+        {"default_prop_a", "default_value_a"},
+      }));
+    CHECK_THAT(
+      entityNodeWithPropsAB->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {"classname", "some_name"},
+        {"some_prop", "some_value"},
+        {"default_prop_a", "default_value_a"},
+        {"default_prop_b", "default_value_b"},
+      }));
+  }
+
+  SECTION("Set Missing Default Properties")
+  {
+    document->setDefaultProperties(Model::SetDefaultPropertyMode::SetMissing);
+
+    CHECK_THAT(
+      entityNodeWithoutDefinition->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {"classname", "some_class"},
+        {"some_prop", "some_value"},
+      }));
+    CHECK_THAT(
+      entityNodeWithProp->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {"classname", "some_name"},
+        {"some_prop", "some_value"},
+        {"default_prop_a", "default_value_a"},
+        {"default_prop_b", "default_value_b"},
+      }));
+    CHECK_THAT(
+      entityNodeWithPropA->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {"classname", "some_name"},
+        {"some_prop", "some_value"},
+        {"default_prop_a", "default_value_a"},
+        {"default_prop_b", "default_value_b"},
+      }));
+    CHECK_THAT(
+      entityNodeWithPropAWithValueChanged->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {"classname", "some_name"},
+        {"default_prop_a", "some_other_value"},
+        {"default_prop_b", "default_value_b"},
+      }));
+    CHECK_THAT(
+      entityNodeWithPropsAB->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {"classname", "some_name"},
+        {"some_prop", "some_value"},
+        {"default_prop_a", "default_value_a"},
+        {"default_prop_b", "yet_another_value"},
+      }));
+  }
+
+  SECTION("Set All Default Properties")
+  {
+    document->setDefaultProperties(Model::SetDefaultPropertyMode::SetAll);
+
+    CHECK_THAT(
+      entityNodeWithoutDefinition->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {"classname", "some_class"},
+        {"some_prop", "some_value"},
+      }));
+    CHECK_THAT(
+      entityNodeWithProp->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {"classname", "some_name"},
+        {"some_prop", "some_value"},
+        {"default_prop_a", "default_value_a"},
+        {"default_prop_b", "default_value_b"},
+      }));
+    CHECK_THAT(
+      entityNodeWithPropA->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {"classname", "some_name"},
+        {"some_prop", "some_value"},
+        {"default_prop_a", "default_value_a"},
+        {"default_prop_b", "default_value_b"},
+      }));
+    CHECK_THAT(
+      entityNodeWithPropAWithValueChanged->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {"classname", "some_name"},
+        {"default_prop_a", "default_value_a"},
+        {"default_prop_b", "default_value_b"},
+      }));
+    CHECK_THAT(
+      entityNodeWithPropsAB->entity().properties(),
+      Catch::Matchers::UnorderedEquals(std::vector<Model::EntityProperty>{
+        {"classname", "some_name"},
+        {"some_prop", "some_value"},
+        {"default_prop_a", "default_value_a"},
+        {"default_prop_b", "default_value_b"},
+      }));
   }
 }
 

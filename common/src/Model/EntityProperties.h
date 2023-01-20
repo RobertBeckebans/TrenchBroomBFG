@@ -85,8 +85,14 @@ extern const std::string LayerOmitFromExportValue;
 struct EntityPropertyConfig
 {
   std::optional<EL::Expression> defaultModelScaleExpression;
+  bool setDefaultProperties{false};
+  bool updateAnglePropertyAfterTransform{true};
 
-  kdl_reflect_decl(EntityPropertyConfig, defaultModelScaleExpression);
+  kdl_reflect_decl(
+    EntityPropertyConfig,
+    defaultModelScaleExpression,
+    setDefaultProperties,
+    updateAnglePropertyAfterTransform);
 };
 
 bool isNumberedProperty(std::string_view prefix, std::string_view key);
@@ -120,8 +126,7 @@ public:
 
 bool isLayer(const std::string& classname, const std::vector<EntityProperty>& properties);
 bool isGroup(const std::string& classname, const std::vector<EntityProperty>& properties);
-bool isWorldspawn(
-  const std::string& classname, const std::vector<EntityProperty>& properties);
+bool isWorldspawn(const std::string& classname);
 
 std::vector<EntityProperty>::const_iterator findEntityProperty(
   const std::vector<EntityProperty>& properties, const std::string& key);

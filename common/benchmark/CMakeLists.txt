@@ -2,7 +2,6 @@ set(COMMON_BENCHMARK_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(COMMON_BENCHMARK_SOURCE
         "${COMMON_BENCHMARK_SOURCE_DIR}/BenchmarkUtils.h"
         "${COMMON_BENCHMARK_SOURCE_DIR}/IO/TestParserStatus.h"
-        "${COMMON_BENCHMARK_SOURCE_DIR}/AABBTreeBenchmark.cpp"
         "${COMMON_BENCHMARK_SOURCE_DIR}/IO/TestParserStatus.cpp"
         "${COMMON_BENCHMARK_SOURCE_DIR}/Main.cpp"
         "${COMMON_BENCHMARK_SOURCE_DIR}/Renderer/BrushRendererBenchmark.cpp"
@@ -46,10 +45,7 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:Qt5::QWindowsVistaStylePlugin>" "$<TARGET_FILE_DIR:common-benchmark>/styles")
 endif()
 
-# Clear all fixtures
-add_custom_command(TARGET common-benchmark POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E rm -rf "${BENCHMARK_FIXTURE_DEST_DIR}")
-
 # Copy test fixtures
 add_custom_command(TARGET common-benchmark POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E rm -rf "${BENCHMARK_FIXTURE_DEST_DIR}"
         COMMAND ${CMAKE_COMMAND} -E copy_directory "${BENCHMARK_FIXTURE_SOURCE_DIR}" "${BENCHMARK_FIXTURE_DEST_DIR}/benchmark")

@@ -590,6 +590,10 @@ If you look closely at the clip above, you will notice that the entity in the pi
 
 Finally, if TrenchBroom has found a property that contains the rotation angle of the entity, it adapts the value of that property according to the rotation being performed by the user. These rules are quite complicated because sadly, the entity definitions do not contain information about how rotations should be applied to entities. But in practice, they should just perform as expected when you work with the rotate tool in the editor.
 
+![Checkbox](images/UpdateAnglePropertyAfterTransform.png)
+
+This behavior can be disabled temporarily by toggling the checkbox to the right of the "Apply" button when the rotate tool is active. If the checkmark is removed, TrenchBroom will not update any entity properties except for the origin when an entity is rotated either by the rotate tool or by a shortcut.
+
 ### Flipping Objects {#flipping_objects}
 
 Flipping has the effect of mirroring the selected objects, the mirror being a plane which is defined by the center of the bounding box of the selected objects, snapped to the grid, and by a normal vector. The normal vector of the plane depends on the actual flipping command and the viewing direction of the camera in the 3D viewport or the view plane of the focused 2D viewport. The following table explains how the normal vector is derived from this information.
@@ -1016,7 +1020,21 @@ An entity is, essentially, a collection of properties, and a property is a key v
 
 ![Entity Property Editor](images/EntityPropertyEditor.png)
 
-The entity property editor is split into two separate areas. At the top, there is a tabular representation of the properties of the currently selected entities and, if applicable, the defaults for those properties which are not present in the selected entities. The default properties are shown in _italics_ below the actual properties of the selected entities. To hide the default properties, you can uncheck the checkbox at the bottom of the table.
+The entity property editor is split into two separate areas. At the top, there is a tabular representation of the properties of the currently selected entities and, if applicable, the defaults for those properties which are not present in the selected entities.
+
+### Default Entity Properties {#entity_properties_defaults}
+
+The default properties are shown in _italics_ below the actual properties of the selected entities. To hide the default properties, you can uncheck the checkbox at the bottom of the table. Default entity properties are defined in an entity definition file such as an FGD file, and their meaning depends on the game. Some games, like Quake, have builtin default values for entity properties, and the default entity properties reflect these defaults (if set up correctly in the entity definition file).
+
+Other games such as Half Life don't provide default values for entity properties, and expect the defaults to be set explicitly for every entity. If configured in the [game configuration](#game_configuration_files_entities), then TrenchBroom will automatically instantiate the default entity properties (with default values) when a new entity is created. Note that not every default property will be instantiated by TrenchBroom - only those properties which have a default value configured in the entity definition file can be instantiated by TrenchBroom.
+
+![Setting Default Entity Properties](images/SetDefaultPropertiesMenu.png)
+
+Below the entity property editor, there is a small button which pops up a menu when pressed. This menu has three entries:
+
+- **Set existing default properties**: This resets all entity properties to their default values if they have one. No entity property is added or removed, and no entity property is changed unless it has a default value.
+- **Set missing default properties**: This adds all default entity properties that aren't set. Only adds new entity properties. No entity property is removed and no existing entity property is changed.
+- **Set all default properties**: This is a combination of the above. Every entity property having a default value is set to its default, regardless of its current value. Missing default properties are added. No entity properties are removed, and only default entity properties are changed.
 
 ### Editing Properties
 
@@ -1848,28 +1866,32 @@ A unary operator is an operator that applies to a single operand. In TrenchBroom
 The following table explains the effects of applying the unary operators to values depending on the type of the values.
 
 -------------------------------------------------------------------------------------------------------
-Operator 			`Boolean`         `String` `Number`     `Array` `Map`   `Range` `Null`  `Undefined`
---------            ----              ----     ----         ----    ----    ----    ----    ----
-`Plus`   			convert to number error    no effect    error   error   error   error   error
+Operator 	        `Boolean`         `String`     `Number`     `Array` `Map`   `Range` `Null`  `Undefined`
+--------           ----              ----         ----         ----    ----    ----    ----    ----
+`Plus`             convert to number see below    no effect    error   error   error   error   error
 
-`Minus`  			convert to number error    negate value error   error   error   error   error
-         			and negate value
+`Minus`            convert to number see below    negate value error   error   error   error   error
+                   and negate value
 
-`LogicalNegation` 	invert value      error    error        error   error   error   error   error
+`LogicalNegation`  invert value      error        error        error   error   error   error   error
 
-`BinaryNegation` 	error 			  error    invert bits  error   error   error   error   error
+`BinaryNegation`   error             see below    invert bits  error   error   error   error   error
 -------------------------------------------------------------------------------------------------------
+
+Note on using applying a unary operator to a value of type `String`: Every operator except `LogicalNegation` will try to convert a value of type `String` to a number if possible.
 
 Some examples of using unary operators follow.
 
     +1.0   //  1.0
     -1.0   // -1.0
+    -'1'   // -1.0
     +true  //  1.0
     -true  // -1.0
     !true  // false
     !false // true
     ~1     // -2
     ~-2    // 1
+    ~'-2'  // 1
 
 ### Binary Operator Terms
 
@@ -1886,6 +1908,12 @@ Algebraic terms are terms that use the binary operators `+`, `-`, `*`, `/`, or `
 	Modulus        = SimpleTerm "%" Expression
 
 All of these operators can be applied to operands of type `Boolean` or `Number`. If an operand is of type `Boolean`, it is converted to type `Number` before the operation is applied.
+
+If one of the operators is of type `Boolean` or `Number` and the other operand is of type `String`, and its value can be converted to a number, then the operand can be applied, and the operand of type `String` is also converted to type `Number`.
+
+    "1.23" + 1 // 2.23
+    1.23 + "1" // 2.23
+    "1" + "2"  // 12, see below
 
 In addition, the `+` operator can be applied if both operands are of type `String`, if both are of type `Array`, or if both are of type `Map`.
 
@@ -1916,7 +1944,7 @@ The following table shows the effects of applying the logical operators.
 
 #### Binary Terms
 
-Binary terms manipulate the bit representation of operands of type `Number`. Note that, since manipulating the bit representation of a floating point number does not make much sense, the operands are converted to an integer representation first by omitting their fractional portion. If one of the operands is not of type `Number`, the operand is converted to type `Number` according to the [type conversion rules](#el_type_conversion).
+Binary terms manipulate the bit representation of operands of type `Number`. Note that, since manipulating the bit representation of a floating point number does not make much sense, the operands are converted to an integer representation first by omitting their fractional portion. If either of the operands is not of type `Number`, the operand is converted to type `Number` according to the [type conversion rules](#el_type_conversion).
 
     BinaryAnd        = SimpleTerm "&" SimpleTerm
     BinaryXor        = SimpleTerm "|" SimpleTerm
@@ -2385,6 +2413,7 @@ Game configuration files need to specify the following information.
 	* The builtin **entity definition files**
 	* The **default color** to use in the UI
   * A default **model scale expression**
+  * Whether to automatically set default entity properties
 * **Tags** to attach additional information to faces or brushes in the editor, e.g. whether a face is detail or hint. (optional)
 * **Face attributes** to specify which additional attributes to allow on brush faces (optional)
 * **Map bounds** to be displayed in the 2D viewports (optional)
@@ -2492,12 +2521,19 @@ The game configuration files are versioned. Whenever a breaking change to the ga
 
 **Current Versions**
 
-TrenchBroom currently supports game config versions 3 and 4. Version 4 has the following changes from version 3:
+TrenchBroom currently supports game config versions 3 through 6.
 
-* Version 4 adds support for the `unused` key in surface flags and content flags; this key does not exist in version 3.
-* Version 4 adds support for specifying a list of values for the `pattern` key in surfaceparm-type smart tags; in version 3 only a single value is allowed.
-* Version 4 adds the optional `softMapBounds` key.
-* Version 4 adds the optional `compilationTools` key.
+**Version History**
+
+* Version 6
+  - Adds the optional `setDefaultProperties` key to the entity configuration.
+* Version 5
+  - Makes the model format whitelist optional. If a whitelist is still present in a config file, it is ignored. 
+* Version 4
+  - Adds support for the `unused` key in surface flags and content flags; this key does not exist in version 3.
+  - Adds support for specifying a list of values for the `pattern` key in surfaceparm-type smart tags; in version 3 only a single value is allowed.
+  - Adds the optional `softMapBounds` key.
+  - Adds the optional `compilationTools` key.
 
 **Migrating from Version 2**
 
@@ -2629,7 +2665,8 @@ In the entity configuration section, you can specify which entity definition fil
   	"entities": { // the builtin entity definition files for this game
 		"definitions": [ "Quake2/Quake2.fgd" ],
     	"defaultcolor": "0.6 0.6 0.6 1.0",
-      "scale": [ modelscale, modelscale_vec ]
+      "scale": [ modelscale, modelscale_vec ],
+      "setDefaultProperties": true
     },
 
 The `definitions` key provides a list of entity definition files. These files are specified by a path that is relative to the `games` directory where TrenchBroom searches for the game configurations.
@@ -2644,6 +2681,8 @@ Example                                   Description
 `"scale": [ modelscale, modelscale_vec ]` Try the individual values in the array until we find one that doesn't evaluate to `Undefined` or `Null`.
 
 Of course, you could use the switch and case operators for more complicated cases.
+
+The optional `setDefaultProperties` key controls whether [default entity properties](#entity_properties_defaults) are instantiated automatically when TrenchBroom creates a new entity. Defaults to `false` if not set.
 
 #### Tags {#game_configuration_files_tags}
 

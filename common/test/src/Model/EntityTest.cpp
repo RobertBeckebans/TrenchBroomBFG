@@ -19,6 +19,7 @@
 
 #include "Model/Entity.h"
 #include "Assets/EntityDefinition.h"
+#include "Assets/PropertyDefinition.h"
 #include "EL/Expressions.h"
 #include "FloatType.h"
 #include "IO/ELParser.h"
@@ -73,6 +74,49 @@ TEST_CASE("EntityTest.setProperties")
 
     CHECK(entity.modelTransformation() == vm::scaling_matrix(vm::vec3{1, 2, 3}));
   }
+}
+
+TEST_CASE("EntityTest.setDefaultProperties")
+{
+  const auto propertyConfig = EntityPropertyConfig{};
+
+  auto definition = Assets::PointEntityDefinition{
+    "some_name",
+    Color{},
+    vm::bbox3{32.0},
+    "",
+    {
+      std::make_shared<Assets::StringPropertyDefinition>(
+        "some_prop", "", "", !true(readOnly)),
+      std::make_shared<Assets::StringPropertyDefinition>(
+        "some_default_prop", "", "", !true(readOnly), "value"),
+    },
+    {}};
+
+  using T = std::tuple<
+    std::vector<EntityProperty>,
+    SetDefaultPropertyMode,
+    std::vector<EntityProperty>>;
+
+  const auto [initialProperties, mode, expectedProperties] = GENERATE(values<T>({
+    {{}, SetDefaultPropertyMode::SetExisting, std::vector<EntityProperty>{}},
+    {{}, SetDefaultPropertyMode::SetMissing, {{"some_default_prop", "value"}}},
+    {{}, SetDefaultPropertyMode::SetAll, {{"some_default_prop", "value"}}},
+    {{{"some_default_prop", "other_value"}},
+     SetDefaultPropertyMode::SetExisting,
+     {{"some_default_prop", "value"}}},
+    {{{"some_default_prop", "other_value"}},
+     SetDefaultPropertyMode::SetMissing,
+     {{"some_default_prop", "other_value"}}},
+    {{{"some_default_prop", "other_value"}},
+     SetDefaultPropertyMode::SetAll,
+     {{"some_default_prop", "value"}}},
+  }));
+
+  auto entity = Entity{propertyConfig, initialProperties};
+  setDefaultProperties(propertyConfig, definition, entity, mode);
+
+  CHECK_THAT(entity.properties(), Catch::Matchers::UnorderedEquals(expectedProperties));
 }
 
 TEST_CASE("EntityTest.definitionBounds")
@@ -603,6 +647,30 @@ TEST_CASE("EntityTest.transform")
       entity.modelTransformation()
       == vm::translation_matrix(vm::vec3{8, 7, 6})
            * vm::scaling_matrix(vm::vec3{2, 2, 2}));
+  }
+
+  SECTION("Updates angle property")
+  {
+    auto entityPropertyConfig = EntityPropertyConfig{};
+
+    entity.setClassname(entityPropertyConfig, "light");
+    entity.addOrUpdateProperty(entityPropertyConfig, EntityPropertyKeys::Angle, "0");
+
+    const auto rotation = vm::rotation_matrix(0.0, 0.0, vm::to_radians(90.0));
+
+    SECTION("If property update after transform is enabled")
+    {
+      entity.transform(entityPropertyConfig, rotation);
+      CHECK(*entity.property(EntityPropertyKeys::Angle) == "90");
+    }
+
+    SECTION("If property update after transform is disabled")
+    {
+      entityPropertyConfig.updateAnglePropertyAfterTransform = false;
+
+      entity.transform(entityPropertyConfig, rotation);
+      CHECK(*entity.property(EntityPropertyKeys::Angle) == "0");
+    }
   }
 }
 } // namespace Model
