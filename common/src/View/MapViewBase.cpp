@@ -771,7 +771,6 @@ void MapViewBase::makeStructural()
   {
     reparentNodes(toReparent, document->parentForNodes(toReparent), false);
   }
-
   bool anyTagDisabled = false;
   auto callback = EnableDisableTagCallback{};
   for (auto* brush : document->selectedNodes().brushes())
@@ -903,6 +902,16 @@ void MapViewBase::hideAllEntityLinks()
   setPref(Preferences::FaceRenderMode, Preferences::entityLinkModeNone());
 }
 
+bool MapViewBase::event(QEvent* event)
+{
+  if (event->type() == QEvent::WindowDeactivate)
+  {
+    cancelMouseDrag();
+  }
+
+  return RenderView::event(event);
+}
+
 void MapViewBase::focusInEvent(QFocusEvent* event)
 {
   updateActionStates(); // enable/disable QShortcut's to reflect whether we have focus
@@ -915,7 +924,6 @@ void MapViewBase::focusInEvent(QFocusEvent* event)
 
 void MapViewBase::focusOutEvent(QFocusEvent* event)
 {
-  cancelMouseDrag();
   clearModifierKeys();
   update();
   RenderView::focusOutEvent(event);
@@ -1219,7 +1227,7 @@ void MapViewBase::showPopupMenuLater()
     menu.addAction(tr("Rename Groups"), mapFrame, &MapFrame::renameSelectedGroups);
   renameAction->setEnabled(mapFrame->canRenameSelectedGroups());
 
-  if (newGroup && newGroup != currentGroup)
+  if (newGroup && canReparentNodes(nodes, newGroup))
   {
     menu.addAction(
       tr("Add Objects to Group %1").arg(QString::fromStdString(newGroup->name())),
@@ -1560,8 +1568,7 @@ Model::GroupNode* MapViewBase::findGroupToMergeGroupsInto(
 bool MapViewBase::canReparentNode(
   const Model::Node* node, const Model::Node* newParent) const
 {
-  return newParent != node && newParent != node->parent()
-         && !newParent->isDescendantOf(node);
+  return newParent != node && newParent != node->parent() && newParent->canAddChild(node);
 }
 
 void MapViewBase::moveSelectedBrushesToEntity()

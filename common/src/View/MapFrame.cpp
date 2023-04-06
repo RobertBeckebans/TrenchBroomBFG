@@ -1604,13 +1604,15 @@ void MapFrame::selectByLineNumber()
       "Select by Line Numbers",
       "Enter a comma- or space separated list of line numbers.");
     if (string.isEmpty())
+    {
       return;
+    }
 
-    std::vector<size_t> positions;
-    for (const QString& token : string.split(", "))
+    auto positions = std::vector<size_t>{};
+    for (const auto& token : string.split(QRegExp{"[, ]"}))
     {
       bool ok;
-      long position = token.toLong(&ok);
+      const auto position = token.toLong(&ok);
       if (ok && position > 0)
       {
         positions.push_back(static_cast<size_t>(position));
@@ -2358,13 +2360,13 @@ void MapFrame::debugShowPalette()
 
 void MapFrame::focusChange(QWidget* /* oldFocus */, QWidget* newFocus)
 {
-  auto newMapView = dynamic_cast<MapViewBase*>(newFocus);
-  if (newMapView != nullptr)
+  if (auto* newMapView = dynamic_cast<MapViewBase*>(newFocus))
   {
     m_currentMapView = newMapView;
   }
 
   updateActionState();
+  updateUndoRedoActions();
 }
 
 MapViewBase* MapFrame::currentMapViewBase()

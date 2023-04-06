@@ -33,9 +33,9 @@ AboutDialog* AboutDialog::instance = nullptr;
 
 void AboutDialog::showAboutDialog()
 {
-  if (AboutDialog::instance == nullptr)
+  if (!AboutDialog::instance)
   {
-    AboutDialog::instance = new AboutDialog();
+    AboutDialog::instance = new AboutDialog{};
     AboutDialog::instance->show();
   }
   else
@@ -47,8 +47,10 @@ void AboutDialog::showAboutDialog()
 
 void AboutDialog::closeAboutDialog()
 {
-  if (AboutDialog::instance != nullptr)
+  if (AboutDialog::instance)
+  {
     AboutDialog::instance->close();
+  }
 }
 
 AboutDialog::~AboutDialog()
@@ -57,7 +59,6 @@ AboutDialog::~AboutDialog()
 }
 
 AboutDialog::AboutDialog()
-  : QDialog()
 {
   // This makes it so the About dialog doesn't prevent the application from quitting
   setAttribute(Qt::WA_QuitOnClose, false);
@@ -66,58 +67,65 @@ AboutDialog::AboutDialog()
 
 void AboutDialog::createGui()
 {
-  const QString creditsString =
-    tr(
-      "github.com/TrenchBroom/TrenchBroom\n\n"
-      "github.com/RobertBeckebans/TrenchBroom\n\n"
-      "<b>Developers</b>\n"
-      "Kristian Duske\n"
-      "Eric Wasylishen\n\n"
-      "Robert Beckebans (BFG hardfork for best interop with RBDOOM-3-BFG)\n\n"
-      "<b>Contributors</b>\n"
-      "20kdc, "
-      "aapokaapo, "
-      "Amara M. Kilic, "
-      "Ari Vuollet, "
-      "bazhenovc, "
-      "chronicol, "
-      "Corey Jones, "
-      "Jonas Lund, "
-      "Jonathan Linat, "
-      "Josh Palmer, "
-      "mankeli, "
-      "Matthew Borkowski, "
-      "mittorn, "
-      "negke, "
-      "Philipp Nahratow, "
-      "rebb, "
-      "Rohit Nirmal, "
-      "Scampie, "
-      "Yuki Raven\n\n"
-      "<b>3rd Party Libraries, Tools and Assets</b>\n"
-      "Qt (Cross platform GUI library)\n"
-      "FreeType (Font rendering library)\n"
-      "FreeImage (Image loading & manipulation library)\n"
-      "GLEW (OpenGL extension library)\n"
-      "tinyxml2 (XML parsing library)\n"
-      "miniz (Archive library)\n"
-      "Assimp (Asset importer library)\n"
-      "Catch 2 (C++ testing framework)\n"
-      "StackWalker (C++ stack trace analyzer)\n"
-      "CMake (Cross platform build manager)\n"
-      "Vcpkg (C/C++ dependency manager)\n"
-      "Pandoc (Universal document converter)\n"
-      "Source Sans Pro (Font)\n"
-      "Font Awesome 5 Free (Icons)\n")
-      .replace("\n", "<br/>");
+  const QString creditsString = tr(R"(
+github.com/TrenchBroom/TrenchBroomBFG<br />
+<br />
+<b>Developers</b><br />
+<br />
+Robert Beckebans<br />
+<br />
+<b>TrenchBroom Developers</b><br />
+<br />
+Kristian Duske<br />
+Eric Wasylishen<br />
+<br />
+<b>Contributors</b><br />
+20kdc,
+aapokaapo,
+Amara M. Kilic,
+Ari Vuollet,
+bazhenovc,
+chronicol,
+Corey Jones,
+iOrange,
+Jonas Lund,
+Jonathan Linat,
+Josh Palmer,
+mankeli,
+Matthew Borkowski,
+mittorn,
+negke,
+neogeographica,
+Philipp Nahratow,
+rebb,
+Rohit Nirmal,
+Scampie,
+xaGe,
+Yuki Raven
+<br /><br />
+<b>3rd Party Libraries, Tools and Assets</b><br />
+Qt (Cross platform GUI library)<br />
+FreeType (Font rendering library)<br />
+FreeImage (Image loading & manipulation library)<br />
+GLEW (OpenGL extension library)<br />
+tinyxml2 (XML parsing library)<br />
+miniz (Archive library)<br />
+Assimp (Asset importer library)<br />
+Catch 2 (C++ testing framework)<br />
+StackWalker (C++ stack trace analyzer)<br />
+CMake (Cross platform build manager)<br />
+Vcpkg (C/C++ dependency manager)<br />
+Pandoc (Universal document converter)<br />
+Source Sans Pro (Font)<br />
+Font Awesome 5 Free (Icons)<br />)");
   setWindowIconTB(this);
 
-  auto* infoPanel = new AppInfoPanel();
-  auto* creditsText = new QLabel(creditsString);
+  auto* infoPanel = new AppInfoPanel{};
+  auto* creditsText = new QLabel{creditsString};
   creditsText->setWordWrap(true);
   creditsText->setMaximumWidth(300);
 
-  auto* layout = new QHBoxLayout();
+  auto* layout = new QHBoxLayout{};
   layout->setSizeConstraint(QLayout::SetFixedSize);
   layout->setContentsMargins(0, 20, 0, 20);
   layout->addSpacing(50);

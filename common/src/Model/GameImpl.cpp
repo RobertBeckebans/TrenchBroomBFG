@@ -196,13 +196,12 @@ std::unique_ptr<WorldNode> GameImpl::doNewMap(
   const auto builder =
     Model::BrushBuilder{worldNode->mapFormat(), worldBounds, defaultFaceAttribs()};
   builder.createCuboid({128.0, 128.0, 32.0}, Model::BrushFaceAttributes::NoTextureName)
-    .visit(kdl::overload(
-      [&](Brush&& b) {
-        worldNode->defaultLayer()->addChild(new BrushNode{std::move(b)});
-      },
-      [&](const Model::BrushError e) {
-        logger.error() << "Could not create default brush: " << e;
-      }));
+    .transform([&](Brush&& b) {
+      worldNode->defaultLayer()->addChild(new BrushNode{std::move(b)});
+    })
+    .or_else([&](const Model::BrushError e) {
+      logger.error() << "Could not create default brush: " << e;
+    });
 
   return worldNode;
 }
@@ -296,11 +295,17 @@ std::vector<Node*> GameImpl::doParseNodes(
   const std::string& str,
   const MapFormat mapFormat,
   const vm::bbox3& worldBounds,
+  const std::vector<std::string>& linkedGroupsToKeep,
   Logger& logger) const
 {
   auto parserStatus = IO::SimpleParserStatus{logger};
   return IO::NodeReader::read(
-    str, mapFormat, worldBounds, entityPropertyConfig(), parserStatus);
+    str,
+    mapFormat,
+    worldBounds,
+    entityPropertyConfig(),
+    linkedGroupsToKeep,
+    parserStatus);
 }
 
 std::vector<BrushFace> GameImpl::doParseBrushFaces(
