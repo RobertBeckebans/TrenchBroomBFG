@@ -476,7 +476,7 @@ void AppPreferenceManager::showErrorAndDisableFileReadWrite(
 
   QTimer::singleShot(0, [=] {
     auto dialog = QMessageBox(
-      QMessageBox::Icon::Critical, tr("TrenchBroom"), message, QMessageBox::Ok);
+      QMessageBox::Icon::Critical, tr("TrenchBroomBFG"), message, QMessageBox::Ok);
     dialog.exec();
   });
 }
