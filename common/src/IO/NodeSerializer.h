@@ -110,6 +110,14 @@ public:
     const std::vector<Model::EntityProperty>& properties,
     const std::vector<Model::EntityProperty>& parentProperties,
     const std::vector<Model::BrushNode*>& entityBrushes);
+  // RB begin
+  void entity(
+    const Model::Node* node,
+    const std::vector<Model::EntityProperty>& properties,
+    const std::vector<Model::EntityProperty>& parentProperties,
+    const std::vector<Model::BrushNode*>& entityBrushes,
+    const std::vector<Model::PatchNode*>& entityPatches);
+  // RB end
 
 private:
   void beginEntity(
@@ -125,6 +133,7 @@ private:
   void brushes(const std::vector<Model::BrushNode*>& brushNodes);
   void brush(const Model::BrushNode* brushNode);
 
+  void patches(const std::vector<Model::PatchNode*>& patchNodes); // RB
   void patch(const Model::PatchNode* patchNode);
 
 public:

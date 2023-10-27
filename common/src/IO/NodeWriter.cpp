@@ -148,8 +148,12 @@ void NodeWriter::writeNodes(const std::vector<Model::Node*>& nodes)
   // or world brushes.
   std::vector<Model::Node*> groups;
   std::vector<Model::Node*> entities;
+
   std::vector<Model::BrushNode*> worldBrushes;
   EntityBrushesMap entityBrushes;
+
+  std::vector<Model::PatchNode*> worldPatches;
+  EntityPatchesMap entityPatches;
 
   for (auto* node : nodes)
   {
@@ -168,11 +172,20 @@ void NodeWriter::writeNodes(const std::vector<Model::Node*>& nodes)
           worldBrushes.push_back(brush);
         }
       },
-      [](Model::PatchNode*) {}));
+      [&](Model::PatchNode* patch) {
+        if (auto* entity = dynamic_cast<Model::EntityNode*>(patch->parent()))
+        {
+          entityPatches[entity].push_back(patch);
+        }
+        else
+        {
+          worldPatches.push_back(patch);
+        }
+      }));
   }
 
-  writeWorldBrushes(worldBrushes);
-  writeEntityBrushes(entityBrushes);
+  writeWorldBrushes(worldBrushes, worldPatches);
+  writeEntityBrushes(entityBrushes, entityPatches);
 
   doWriteNodes(*m_serializer, groups);
   doWriteNodes(*m_serializer, entities);
@@ -180,21 +193,31 @@ void NodeWriter::writeNodes(const std::vector<Model::Node*>& nodes)
   m_serializer->endFile();
 }
 
-void NodeWriter::writeWorldBrushes(const std::vector<Model::BrushNode*>& brushes)
+// RB begin
+void NodeWriter::writeWorldBrushes(
+  const std::vector<Model::BrushNode*>& brushes,
+  const std::vector<Model::PatchNode*>& patches)
 {
-  if (!brushes.empty())
+  if (!(brushes.empty() && patches.empty()))
   {
-    m_serializer->entity(&m_world, m_world.entity().properties(), {}, brushes);
+    m_serializer->entity(&m_world, m_world.entity().properties(), {}, brushes, patches);
   }
 }
 
-void NodeWriter::writeEntityBrushes(const EntityBrushesMap& entityBrushes)
+void NodeWriter::writeEntityBrushes(
+  const EntityBrushesMap& entityBrushes, const EntityPatchesMap& entityPatches)
 {
   for (const auto& [entityNode, brushes] : entityBrushes)
   {
-    m_serializer->entity(entityNode, entityNode->entity().properties(), {}, brushes);
+    m_serializer->entity(entityNode, entityNode->entity().properties(), {}, brushes, {});
+  }
+
+  for (const auto& [entityNode, patches] : entityPatches)
+  {
+    m_serializer->entity(entityNode, entityNode->entity().properties(), {}, {}, patches);
   }
 }
+// RB end
 
 void NodeWriter::writeBrushFaces(const std::vector<Model::BrushFace>& faces)
 {

@@ -29,6 +29,7 @@ namespace TrenchBroom
 namespace Model
 {
 class BrushNode;
+class PatchNode;
 class BrushFace;
 class EntityNode;
 class LayerNode;
@@ -44,6 +45,8 @@ class NodeWriter
 {
 private:
   using EntityBrushesMap = std::map<Model::EntityNode*, std::vector<Model::BrushNode*>>;
+  using EntityPatchesMap =
+    std::map<Model::EntityNode*, std::vector<Model::PatchNode*>>; // RB
 
   const Model::WorldNode& m_world;
   std::unique_ptr<NodeSerializer> m_serializer;
@@ -65,8 +68,13 @@ public:
   void writeNodes(const std::vector<Model::Node*>& nodes);
 
 private:
-  void writeWorldBrushes(const std::vector<Model::BrushNode*>& brushes);
-  void writeEntityBrushes(const EntityBrushesMap& entityBrushes);
+  // RB: also serialize patches
+  void writeWorldBrushes(
+    const std::vector<Model::BrushNode*>& brushes,
+    const std::vector<Model::PatchNode*>& patches);
+  void writeEntityBrushes(
+    const EntityBrushesMap& entityBrushes, const EntityPatchesMap& entityPatches);
+  // RB end
 
 public:
   void writeBrushFaces(const std::vector<Model::BrushFace>& faces);

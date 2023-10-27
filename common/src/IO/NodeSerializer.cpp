@@ -203,6 +203,30 @@ void NodeSerializer::entity(
   endEntity(node);
 }
 
+// RB begin
+void NodeSerializer::entity(
+  const Model::Node* node,
+  const std::vector<Model::EntityProperty>& properties,
+  const std::vector<Model::EntityProperty>& extraProperties,
+  const std::vector<Model::BrushNode*>& entityBrushes,
+  const std::vector<Model::PatchNode*>& entityPatches)
+{
+  beginEntity(node, properties, extraProperties);
+  brushes(entityBrushes);
+  patches(entityPatches);
+  endEntity(node);
+}
+
+void NodeSerializer::patches(const std::vector<Model::PatchNode*>& patchNodes)
+{
+  for (auto* patch : patchNodes)
+  {
+    this->patch(patch);
+  }
+}
+
+// RB end
+
 void NodeSerializer::beginEntity(
   const Model::Node* node,
   const std::vector<Model::EntityProperty>& properties,
