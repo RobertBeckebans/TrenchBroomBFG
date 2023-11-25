@@ -147,6 +147,9 @@ Assets::Texture FreeImageTextureReader::readTextureFromMemory(
     TRUE);
 
   const auto textureType = Assets::Texture::selectTextureType(masked);
+
+  // RB: skip average Color to speed up map loading
+  // const Color averageColor(0.25f, 0.25f, 0.25f, 1.0f);
   const Color averageColor = getAverageColor(buffers.at(0), format);
 
   return Assets::Texture{

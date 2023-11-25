@@ -241,6 +241,11 @@ bool EditorContext::visible(const Model::PatchNode* patchNode) const
     return true;
   }
 
+  if (!pref(Preferences::ShowPatches))
+  {
+    return false;
+  }
+
   if (patchNode->hasTag(m_hiddenTags))
   {
     return false;

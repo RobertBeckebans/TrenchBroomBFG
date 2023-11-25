@@ -915,6 +915,13 @@ void ActionManager::createViewActions()
     [](ActionExecutionContext& context) { context.view()->toggleShowBrushes(); },
     [](ActionExecutionContext& context) { return context.hasDocument(); });
   createAction(
+    IO::Path("Controls/Map view/View Filter > Toggle show patches"),
+    QObject::tr("Toggle Show Patches"),
+    ActionContext::Any,
+    QKeySequence(),
+    [](ActionExecutionContext& context) { context.view()->toggleShowPatches(); },
+    [](ActionExecutionContext& context) { return context.hasDocument(); });
+  createAction(
     IO::Path("Controls/Map view/View Filter > Show textures"),
     QObject::tr("Show Textures"),
     ActionContext::Any,

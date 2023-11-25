@@ -196,6 +196,7 @@ extern Preference<bool> ShowSoftMapBounds;
 // Editor context
 extern Preference<bool> ShowPointEntities;
 extern Preference<bool> ShowBrushes;
+extern Preference<bool> ShowPatches; // RB
 
 QString entityLinkModeAll();
 QString entityLinkModeTransitive();

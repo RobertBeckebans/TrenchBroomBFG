@@ -414,6 +414,17 @@ QWidget* ViewEditor::createBrushesPanel(QWidget* parent)
   ensure(innerLayout != nullptr, "inner sizer is null");
   innerLayout->insertWidget(0, m_showBrushesCheckBox);
 
+  // RB begin
+  m_showPatchesCheckBox = new QCheckBox(tr("Show patches"));
+  connect(
+    m_showPatchesCheckBox,
+    &QAbstractButton::clicked,
+    this,
+    &ViewEditor::showPatchesChanged);
+
+  innerLayout->insertWidget(0, m_showPatchesCheckBox);
+  // RB end
+
   return panel;
 }
 
@@ -615,6 +626,7 @@ void ViewEditor::refreshBrushesPanel()
   auto document = kdl::mem_lock(m_document);
 
   m_showBrushesCheckBox->setChecked(pref(Preferences::ShowBrushes));
+  m_showPatchesCheckBox->setChecked(pref(Preferences::ShowPatches));
 
   Model::EditorContext& editorContext = document->editorContext();
   const Model::TagType::Type hiddenTags = editorContext.hiddenTags();
@@ -668,6 +680,11 @@ void ViewEditor::showPointEntityModelsChanged(const bool checked)
 void ViewEditor::showBrushesChanged(const bool checked)
 {
   setPref(Preferences::ShowBrushes, checked);
+}
+
+void ViewEditor::showPatchesChanged(const bool checked)
+{
+  setPref(Preferences::ShowPatches, checked);
 }
 
 void ViewEditor::showTagChanged(const bool checked, const Model::TagType::Type tagType)
@@ -760,6 +777,7 @@ void ViewEditor::restoreDefaultsClicked()
   prefs.resetToDefault(Preferences::ShowSoftMapBounds);
   prefs.resetToDefault(Preferences::ShowPointEntities);
   prefs.resetToDefault(Preferences::ShowBrushes);
+  prefs.resetToDefault(Preferences::ShowPatches);
   prefs.resetToDefault(Preferences::EntityLinkMode);
   prefs.saveChanges();
 }

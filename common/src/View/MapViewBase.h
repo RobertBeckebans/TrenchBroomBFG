@@ -291,6 +291,7 @@ public: // view filters
   void toggleShowPointEntities();
   void toggleShowPointEntityModels();
   void toggleShowBrushes();
+  void toggleShowPatches(); // RB
   void showTextures();
   void hideTextures();
   void hideFaces();

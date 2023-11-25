@@ -323,6 +323,7 @@ Preference<bool> ShowSoftMapBounds(IO::Path("Map view/Show soft map bounds"), tr
 
 Preference<bool> ShowPointEntities(IO::Path("Map view/Show point entities"), true);
 Preference<bool> ShowBrushes(IO::Path("Map view/Show brushes"), true);
+Preference<bool> ShowPatches(IO::Path("Map view/Show patches"), true); // RB
 
 QString entityLinkModeAll()
 {

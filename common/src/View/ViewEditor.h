@@ -105,6 +105,7 @@ private:
   EntityDefinitionCheckBoxList* m_entityDefinitionCheckBoxList;
 
   QCheckBox* m_showBrushesCheckBox;
+  QCheckBox* m_showPatchesCheckBox; // RB
   std::vector<std::pair<Model::TagType::Type, QCheckBox*>> m_tagCheckBoxes;
 
   QButtonGroup* m_renderModeRadioGroup;
@@ -153,6 +154,7 @@ private:
   void showPointEntitiesChanged(bool checked);
   void showPointEntityModelsChanged(bool checked);
   void showBrushesChanged(bool checked);
+  void showPatchesChanged(bool checked);
   void showTagChanged(bool checked, Model::TagType::Type tagType);
   void faceRenderModeChanged(int id);
   void shadeFacesChanged(bool checked);

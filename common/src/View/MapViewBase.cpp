@@ -852,6 +852,11 @@ void MapViewBase::toggleShowBrushes()
   togglePref(Preferences::ShowBrushes);
 }
 
+void MapViewBase::toggleShowPatches()
+{
+  togglePref(Preferences::ShowPatches);
+}
+
 void MapViewBase::showTextures()
 {
   setPref(Preferences::FaceRenderMode, Preferences::faceRenderModeTextured());
