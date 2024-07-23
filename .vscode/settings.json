@@ -1,0 +1,5 @@
+{
+    "cmake.sourceDirectory": "/home/trebor/Projects/TrenchBroomBFG",
+    "makefile.makefilePath": "build",
+    "cmake.configureOnOpen": false
+}

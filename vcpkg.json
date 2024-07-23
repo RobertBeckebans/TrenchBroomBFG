@@ -4,7 +4,7 @@
   "dependencies": [
     {
       "name": "assimp",
-      "version>=": "5.2.4"
+      "version>=": "5.3.1#2"
     },
     {
       "name": "catch2",
@@ -16,7 +16,7 @@
     },
     {
       "name": "freeimage",
-      "version>=": "3.18.0#22",
+      "version>=": "3.18.0#25",
       "platform": "!linux"
     },
     {
@@ -26,7 +26,7 @@
     },
     {
       "name": "glew",
-      "version>=": "2.2.0",
+      "version>=": "2.2.0#2",
       "platform": "!linux"
     },
     {
@@ -39,8 +39,11 @@
       "platform": "!linux"
     }
   ],
-  "builtin-baseline": "15a0ab7a3e62e62c29bc677589e8974fe401a436",
+  "builtin-baseline": "13bde2ff13192e1b2fdd37bd9b475c7665ae6ae5",
   "overrides": [
-    { "name": "catch2", "version": "2.13.8" }
+    {
+      "name": "catch2",
+      "version": "2.13.8"
+    }
   ]
 }
