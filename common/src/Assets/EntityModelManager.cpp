@@ -28,6 +28,8 @@
 #include "Model/EntityNode.h"
 #include "Renderer/TexturedIndexRangeRenderer.h"
 
+#include <chrono>
+
 namespace TrenchBroom
 {
 namespace Assets
