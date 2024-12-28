@@ -57,7 +57,7 @@ static void initializeGlew()
 {
   glewExperimental = GL_TRUE;
   const GLenum glewState = glewInit();
-  if (glewState != GLEW_OK && glewState != GLEW_ERROR_NO_GLX_DISPLAY )
+  if (glewState != GLEW_OK && glewState != GLEW_ERROR_NO_GLX_DISPLAY)
   {
     auto str = std::stringstream();
     str << "Error initializing glew: " << glewGetErrorString(glewState);

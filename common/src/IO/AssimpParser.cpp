@@ -233,7 +233,20 @@ std::unique_ptr<Assets::EntityModel> AssimpParser::doInitializeModel(
     builder.addPolygon(surface.skin(face.m_material), entityVertices);
   }
 
-  surface.addTexturedMesh(frame, builder.vertices(), builder.indices());
+  // RB: build triangles for TinyBVH
+  std::vector<tinybvh::bvhvec4> bvhTris;
+  for (const auto& face : m_faces)
+  {
+    auto entityVertices = kdl::vec_transform(face.m_vertices, [&](const auto& index) {
+      vm::vec3f v = m_positions[m_vertices[index].m_position];
+      return tinybvh::bvhvec4(v[0], v[1], v[2], 0.0f);
+    });
+
+    bvhTris.insert(bvhTris.end(), entityVertices.begin(), entityVertices.end());
+  }
+  // RB end
+
+  surface.addTexturedMesh(frame, builder.vertices(), builder.indices(), &bvhTris);
   return model;
 }
 

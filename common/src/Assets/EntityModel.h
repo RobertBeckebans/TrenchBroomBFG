@@ -28,6 +28,8 @@
 #include <string>
 #include <vector>
 
+#include "../../lib/tinybvh/include/tiny_bvh.h" // RB FIXME
+
 namespace TrenchBroom
 {
 template <typename T, typename U>
@@ -168,6 +170,9 @@ private:
   using SpacialTree = octree<float, TriNum>;
   std::unique_ptr<SpacialTree> m_spacialTree;
 
+  tinybvh::BVH m_bvh;
+  std::vector<tinybvh::bvhvec4> m_bvhTris;
+
 public:
   /**
    * Creates a new frame.
@@ -208,6 +213,10 @@ public:
     Renderer::PrimType primType,
     size_t index,
     size_t count);
+
+  // RB
+  void buildBVH();
+  void buildBVH(const std::vector<tinybvh::bvhvec4>& bvhTris);
 };
 
 class EntityModelMesh;
@@ -286,7 +295,8 @@ public:
   void addTexturedMesh(
     EntityModelLoadedFrame& frame,
     std::vector<EntityModelVertex> vertices,
-    EntityModelTexturedIndices indices);
+    EntityModelTexturedIndices indices,
+    const std::vector<tinybvh::bvhvec4>* bvhTris = nullptr);
 
   /**
    * Sets the given textures as skins to this surface.

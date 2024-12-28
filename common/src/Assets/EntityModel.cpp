@@ -113,15 +113,37 @@ float EntityModelLoadedFrame::intersect(const vm::ray3f& ray) const
 {
   auto closestDistance = vm::nan<float>();
 
-  const auto candidates = m_spacialTree->find_intersectors(ray);
-  for (const TriNum triNum : candidates)
+#if 1
   {
-    const vm::vec3f& p1 = m_tris[triNum * 3 + 0];
-    const vm::vec3f& p2 = m_tris[triNum * 3 + 1];
-    const vm::vec3f& p3 = m_tris[triNum * 3 + 2];
-    closestDistance =
-      vm::safe_min(closestDistance, vm::intersect_ray_triangle(ray, p1, p2, p3));
+    tinybvh::bvhvec3 O(ray.origin[0], ray.origin[1], ray.origin[2]);
+    tinybvh::bvhvec3 D(ray.direction[0], ray.direction[1], ray.direction[2]);
+    tinybvh::Ray ray2(O, D);
+
+    int steps = m_bvh.Intersect(ray2);
+    if (steps > 0)
+    {
+      closestDistance = ray2.hit.t;
+    }
+    // printf( "std: nearest intersection: %f (found in %i traversal steps).\n",
+    // ray.hit.t, steps );
+
+    // m_logger.info()
+    //<< "std: nearest intersection: '" << ray2.hit.t << "(found in " << steps <<
+    //"traversal steps)";
   }
+#else
+  {
+    const auto candidates = m_spacialTree->find_intersectors(ray);
+    for (const TriNum triNum : candidates)
+    {
+      const vm::vec3f& p1 = m_tris[triNum * 3 + 0];
+      const vm::vec3f& p2 = m_tris[triNum * 3 + 1];
+      const vm::vec3f& p3 = m_tris[triNum * 3 + 2];
+      closestDistance =
+        vm::safe_min(closestDistance, vm::intersect_ray_triangle(ray, p1, p2, p3));
+    }
+  }
+#endif
 
   return closestDistance;
 }
@@ -190,16 +212,16 @@ void EntityModelLoadedFrame::addToSpacialTree(
 
     m_tris.reserve(m_tris.size() + (count - 2) * 3);
 
-    vm::bbox3f::builder bounds;
+    //vm::bbox3f::builder bounds;
 
     const auto& p1 = Renderer::getVertexComponent<0>(vertices[index]);
     for (size_t i = 1; i < count - 1; ++i)
     {
       const auto& p2 = Renderer::getVertexComponent<0>(vertices[index + i]);
       const auto& p3 = Renderer::getVertexComponent<0>(vertices[index + i + 1]);
-      bounds.add(p1);
-      bounds.add(p2);
-      bounds.add(p3);
+      //bounds.add(p1);
+      //bounds.add(p2);
+      //bounds.add(p3);
 
       const size_t triIndex = m_tris.size() / 3u;
       m_tris.push_back(p1);
@@ -207,7 +229,7 @@ void EntityModelLoadedFrame::addToSpacialTree(
       m_tris.push_back(p3);
     }
 
-    m_spacialTree->insert(bounds.bounds(), index);
+    //m_spacialTree->insert(bounds.bounds(), index);
 
 #else
     // Loaded model _tb\models\md5\monsters\hellknight\hellknight.obj in 98ms
@@ -284,6 +306,26 @@ void EntityModelLoadedFrame::addToSpacialTree(
     switchDefault();
   }
 #endif
+}
+
+void EntityModelLoadedFrame::buildBVH()
+{
+  int nTris = m_bvhTris.size() / 3;
+  if (nTris > 0)
+  {
+    m_bvh.Build(&m_bvhTris[0], nTris);
+  }
+}
+
+void EntityModelLoadedFrame::buildBVH(const std::vector<tinybvh::bvhvec4>& bvhTris)
+{
+  m_bvhTris = bvhTris;
+
+  int nTris = m_bvhTris.size() / 3;
+  if (nTris > 0)
+  {
+    m_bvh.Build(&m_bvhTris[0], nTris);
+  }
 }
 
 // EntityModel::UnloadedFrame
@@ -436,10 +478,12 @@ public:
   EntityModelTexturedMesh(
     EntityModelLoadedFrame& frame,
     std::vector<EntityModelVertex> vertices,
-    EntityModelTexturedIndices indices)
+    EntityModelTexturedIndices indices,
+    const std::vector<tinybvh::bvhvec4>* bvhTris)
     : EntityModelMesh{std::move(vertices)}
     , m_indices{std::move(indices)}
   {
+#if 0
     m_indices.forEachPrimitive([&](
                                  const Texture* /* texture */,
                                  const Renderer::PrimType primType,
@@ -447,6 +491,13 @@ public:
                                  const size_t count) {
       frame.addToSpacialTree(m_vertices, primType, index, count);
     });
+#endif
+
+    // RB: build BVH from collected triangles
+    if (bvhTris)
+    {
+      frame.buildBVH(*bvhTris);
+    }
   }
 
 private:
@@ -496,11 +547,12 @@ void EntityModelSurface::addIndexedMesh(
 void EntityModelSurface::addTexturedMesh(
   EntityModelLoadedFrame& frame,
   std::vector<EntityModelVertex> vertices,
-  EntityModelTexturedIndices indices)
+  EntityModelTexturedIndices indices,
+  const std::vector<tinybvh::bvhvec4>* bvhTris)
 {
   assert(frame.index() < frameCount());
   m_meshes[frame.index()] = std::make_unique<EntityModelTexturedMesh>(
-    frame, std::move(vertices), std::move(indices));
+    frame, std::move(vertices), std::move(indices), bvhTris);
 }
 
 void EntityModelSurface::setSkins(std::vector<Texture> skins)

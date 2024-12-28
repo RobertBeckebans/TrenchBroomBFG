@@ -1648,7 +1648,7 @@ int32_t BVH::Intersect( Ray& ray ) const
 {
 	BVHNode* node = &bvhNode[0], * stack[64];
 	uint32_t stackPtr = 0, steps = 0;
-	while (1)
+	while (1 && node)
 	{
 		steps++;
 		if (node->isLeaf())
