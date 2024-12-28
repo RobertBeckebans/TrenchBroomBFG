@@ -31,6 +31,8 @@
 #include <vecmath/intersection.h>
 
 #include <kdl/vector_utils.h>
+//#include <tinybvh/tiny_bvh.h>
+#include "../../lib/tinybvh/include/tiny_bvh.h" // RB FIXME
 
 #include <string>
 
@@ -130,6 +132,7 @@ void EntityModelLoadedFrame::addToSpacialTree(
   const size_t index,
   const size_t count)
 {
+#if 0
   switch (primType)
   {
   case Renderer::PrimType::Points:
@@ -280,6 +283,7 @@ void EntityModelLoadedFrame::addToSpacialTree(
   }
     switchDefault();
   }
+#endif
 }
 
 // EntityModel::UnloadedFrame
