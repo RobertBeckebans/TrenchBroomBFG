@@ -34,7 +34,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Using C and CXX because GLEW is C
-project(TrenchBroom C CXX)
+project(TrenchBroomBFG C CXX)
 
 # Configure CCache if available and requested
 if(TB_ENABLE_CCACHE)
