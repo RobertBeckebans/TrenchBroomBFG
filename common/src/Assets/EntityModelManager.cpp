@@ -202,7 +202,7 @@ std::unique_ptr<EntityModel> EntityModelManager::loadModel(const IO::Path& path)
   m_logger.info()
     << "Loaded model '" << path << "' in "
     << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()
-    << "ms";
+    << " ms";
   return model;
 }
 

@@ -1003,8 +1003,8 @@ bool MapFrame::openDocument(
 
   logger().info()
     << "Loaded " << m_document->path() << " in "
-    << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()
-    << "ms";
+    << std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count()
+    << " seconds";
 
   return true;
 }

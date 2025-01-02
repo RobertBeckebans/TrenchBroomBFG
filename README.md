@@ -28,7 +28,7 @@ Here is an overview of the changes made to TrenchBroom:
 * Doom 3 .map parser with brushDef3, patchDef2, patchDef3 primitives
 * Doom 3 Valve .map configuration
 * Quake 3 .shader parser adopted to support .mtr materials and RBDOOM-3-BFG specific extensions. It includes support for Doom 3 diffuse/basecolormap stages and the lookup for them is like in idMaterial::GetEditorImage()
-* New Doom 3 OBJ parser. RBDOOM-3-BFG automatically creates OBJ files to work with TB and it also allows seamless interop with Blender 2.8x - 3.x without the need of additional model formats
+* New Doom 3 OBJ parser. RBDOOM-3-BFG automatically creates OBJ files to work with TB and it also allows seamless interop with Blender 2.8x - 4.x without the need of additional model formats
 * RBDOOM-3-BFG >= 1.4 ships with TB specific helper entities like misc_model or func_rotating_model to reflect TrenchBroom's clean architecture and differentiation between Brush Entities and Point Entities
 * Game FGDs for Doom 3 and Doom 3 BFG
 * Custom PNG icons for special entities like lights, speakers, particle emitters, info_location, target_* and so on
@@ -39,6 +39,7 @@ Here is an overview of the changes made to TrenchBroom:
 * Changed OBJ exporter so exported models can be easier reimported by RBDOOM-3-BFG
 * Changed Assimp glTF 2 importer so it will look for Doom 3 materials instead of trying to load embedded textures
 * Bezier patches can be copy pasted and copied out of other maps
+* Replaced ray traced model picker code using TinyBVH which allows to load bigger glTF 2 maps almost instantly instead of minutes
 
 ## Issues
 * TrenchBroomBFG doesn't support brush primitives like in D3Radiant or DarkRadiant. Use the Valve 220 .map format instead

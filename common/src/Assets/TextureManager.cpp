@@ -99,7 +99,7 @@ void TextureManager::setTextureCollections(
                         << std::chrono::duration_cast<std::chrono::milliseconds>(
                              endTime - startTime)
                              .count()
-                        << "ms";
+                        << " ms";
         addTextureCollection(std::move(collection));
       }
       catch (const Exception& e)
