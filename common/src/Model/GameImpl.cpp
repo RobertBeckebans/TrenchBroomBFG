@@ -579,16 +579,10 @@ static auto withEntityParser(
     auto parser = IO::AseParser{modelName, reader.stringView(), fs};
     return fun(parser);
   }
-  else if (IO::Doom3ObjParser::canParse(path))
+  if (IO::Doom3ObjParser::canParse(path))
   {
     // has to be the whole path for implicit textures!
     auto parser = IO::Doom3ObjParser{path, reader.stringView(), fs};
-    return fun(parser);
-  }
-  if (IO::NvObjParser::canParse(path))
-  {
-    // has to be the whole path for implicit textures!
-    auto parser = IO::NvObjParser{path, reader.stringView(), fs};
     return fun(parser);
   }
   if (IO::ImageSpriteParser::canParse(path))

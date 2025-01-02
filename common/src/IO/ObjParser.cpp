@@ -1,5 +1,6 @@
 /*
  Copyright (C) 2010-2017 Kristian Duske
+ Copyright (C) 2021-2025 Robert Beckebans
 
  This file is part of TrenchBroom.
 
@@ -222,8 +223,11 @@ std::unique_ptr<Assets::EntityModel> ObjParser::doInitializeModel(Logger& logger
   for (const ObjFace& face : faces)
   {
     std::vector<Assets::EntityModelVertex> vertices;
-    for (const ObjVertexRef& ref : face.m_vertices)
+
+    for (int i = face.m_vertices.size() - 1; i >= 0; i--)
     {
+      const ObjVertexRef& ref = face.m_vertices[i];
+
       size_t point = ref.m_position;
       if (point == 0)
       {
@@ -249,21 +253,65 @@ std::unique_ptr<Assets::EntityModel> ObjParser::doInitializeModel(Logger& logger
         }
         texcoord = texcoords[c];
       }
-      if (reverse)
-      {
-        vertices.insert(
-          vertices.begin(), Assets::EntityModelVertex(positions[point], texcoord));
-      }
-      else
-      {
-        vertices.push_back(Assets::EntityModelVertex(positions[point], texcoord));
-      }
+
+      vertices.push_back(Assets::EntityModelVertex(positions[point], texcoord));
     }
     builder.addPolygon(surface.skin(face.m_material), vertices);
   }
   // }
+
+  // RB: build triangles for TinyBVH
+#if 1
+  std::vector<tinybvh::bvhvec4> bvhTris;
+  for (const ObjFace& face : faces)
+  {
+    int count = face.m_vertices.size();
+
+    if (count == 3)
+    {
+      bvhTris.reserve(bvhTris.size() + 3);
+
+      int i1 = face.m_vertices[0].m_position - 1;
+      int i2 = face.m_vertices[1].m_position - 1;
+      int i3 = face.m_vertices[2].m_position - 1;
+
+      const vm::vec3f& p1 = positions[i1];
+      const vm::vec3f& p2 = positions[i2];
+      const vm::vec3f& p3 = positions[i3];
+
+      bvhTris.push_back(tinybvh::bvhvec4(p3[0], p3[1], p3[2], 0.0f));
+      bvhTris.push_back(tinybvh::bvhvec4(p2[0], p2[1], p2[2], 0.0f));
+      bvhTris.push_back(tinybvh::bvhvec4(p1[0], p1[1], p1[2], 0.0f));
+    }
+    else
+    {
+      // TODO triangulate polygon
+
+      // bvhTris.reserve(bvhTris.size() + (count - 2) * 3);
+      /*
+      int index = face.m_vertices[0].m_position - 1;
+
+       const vm::vec3f& p1 = positions[index];
+        for (size_t i = 1; i < count - 1; ++i)
+        {
+          const vm::vec3f& p2 = positions[index + i];
+          const vm::vec3f& p3 = positions[index + i + 1];
+
+          bvhTris.insert(bvhTris.begin(), tinybvh::bvhvec4(p1[0], p1[1], p1[2], 0.0f));
+          bvhTris.insert(bvhTris.begin(), tinybvh::bvhvec4(p2[0], p2[1], p2[2], 0.0f));
+          bvhTris.insert(bvhTris.begin(), tinybvh::bvhvec4(p3[0], p3[1], p3[2], 0.0f));
+        }
+        */
+    }
+  }
+
+  surface.addTexturedMesh(
+    frame, std::move(builder.vertices()), std::move(builder.indices()), &bvhTris);
+#else
   surface.addTexturedMesh(
     frame, std::move(builder.vertices()), std::move(builder.indices()));
+#endif
+
   return model;
 }
 
