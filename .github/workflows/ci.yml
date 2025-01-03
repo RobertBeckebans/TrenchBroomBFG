@@ -19,19 +19,15 @@ jobs:
       # Don't cancel the macOS build if the Linux build fails, etc.
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, ubuntu-22.04, macos-11, windows-2019]
+        os: [ubuntu-22.04, windows-2019]
         tb-build-type: [release]
         tb-arch: [default-arch]
         exclude:
           - os: windows-2019
             tb-arch: default-arch
         include:
-          - os: macos-11
-            tb-build-type: asan
           - os: windows-2019
             tb-arch: x64
-          - os: windows-2019
-            tb-arch: Win32
     env:
       # Record pull request head commit SHA
       TB_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -91,11 +87,6 @@ jobs:
           version: '5.15.2'
           arch: 'win32_msvc2019'
 
-      - name: Install macOS dependencies
-        if: ${{ matrix.os == 'macos-11' }}
-        run: |
-          brew install cmake p7zip pandoc qt5 ninja autoconf automake
-
       # Restore from cache the previously built ports. If a "cache miss" occurs,
       # then vcpkg is bootstrapped. Since a the vcpkg.json is being used later on
       # to install the packages when `run-cmake` runs, no packages are installed at
@@ -129,14 +120,6 @@ jobs:
         if: ${{ startsWith(matrix.os, 'ubuntu-') }}
         run: ./CI-linux.sh
 
-      - name: macOS build
-        if: ${{ matrix.os == 'macos-11' }}
-        run: |
-          if [ '${{ matrix.tb-build-type }}' = 'asan' ]; then
-            export TB_DEBUG_BUILD=true
-          fi
-          ./CI-macos.sh
-
       - name: Windows build
         if: ${{ matrix.os == 'windows-2019' }}
         # NOTE: docs at https://github.com/jurplel/install-qt-action
@@ -163,16 +146,6 @@ jobs:
             cmakebuild/*.7z
             cmakebuild/*.7z.md5
 
-      # win32
-      - name: Upload win32 artifact
-        uses: actions/upload-artifact@v3
-        if: ${{ matrix.os == 'windows-2019' && matrix.tb-arch == 'Win32' }}
-        with:
-          name: win32
-          path: |
-            cmakebuild/*.7z
-            cmakebuild/*.7z.md5
-
       # Linux
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v3
@@ -181,16 +154,6 @@ jobs:
           name: linux
           path: |
             build/*.deb
-            build/*.md5
-
-      # macOS
-      - name: Upload macOS artifact
-        uses: actions/upload-artifact@v3
-        if: ${{ matrix.os == 'macos-11' && matrix.tb-build-type != 'asan' }}
-        with:
-          name: macos
-          path: |
-            build/*.dmg
             build/*.md5
 
       # Create release
