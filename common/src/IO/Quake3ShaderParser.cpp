@@ -327,7 +327,11 @@ void Quake3ShaderParser::parseStageEntry(
     Quake3ShaderToken::String | Quake3ShaderToken::Number,
     token); // RB: make this more flexible for Doom 3
   const auto key = token.data();
-  if (kdl::ci::str_is_equal(key, "map"))
+  if (
+    kdl::ci::str_is_equal(key, "map") || kdl::ci::str_is_equal(key, "cubemap")
+    || kdl::ci::str_is_equal(
+      key, "cameraCubemap")) //|| kdl::ci::str_is_equal(key, "panormaMap") ||
+                             // kdl::ci::str_is_equal(key, "hdriMap") )
   {
     // RB: TODO check for heightmap(texture, float) and use texture
     token = expect(

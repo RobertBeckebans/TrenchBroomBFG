@@ -72,6 +72,7 @@ private:
   std::weak_ptr<MapDocument> m_document;
   bool m_group;
   bool m_hideUnused;
+  bool m_hideEmpty; // RB
   TextureSortOrder m_sortOrder;
   std::string m_filterText;
 
@@ -89,6 +90,7 @@ public:
   void setSortOrder(TextureSortOrder sortOrder);
   void setGroup(bool group);
   void setHideUnused(bool hideUnused);
+  void setHideEmpty(bool hideEmpty); // RB
   void setFilterText(const std::string& filterText);
 
   const Assets::Texture* selectedTexture() const;
@@ -110,6 +112,7 @@ private:
   struct CompareByUsageCount;
   struct CompareByName;
   struct MatchUsageCount;
+  struct MatchEmpty; // RB
   struct MatchName;
 
   const std::vector<Assets::TextureCollection>& getCollections() const;

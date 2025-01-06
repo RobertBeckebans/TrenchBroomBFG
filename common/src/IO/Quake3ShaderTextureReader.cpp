@@ -49,20 +49,22 @@ Assets::Texture Quake3ShaderTextureReader::doReadTexture(std::shared_ptr<File> f
   }
 
   const auto& shader = shaderFile->object();
+
+#if 0
+  auto materialName = shader.shaderPath.asString();
+  if (materialName == "textures\\base_wall\\a_lfwall9_d02")
+  {
+    int i = 0;
+    i++;
+  }
+#endif
+
   const auto texturePath = findTexturePath(shader);
   if (texturePath.isEmpty())
   {
     throw AssetException(
       "Could not find texture path for shader '" + shader.shaderPath.asString() + "'");
   }
-
-#if 0
-  auto materialName = shader.shaderPath.asString();
-  if (materialName == "textures\\enpro\\encyl3") {
-    int i = 0;
-    i++;
-  }
-#endif
 
   auto texture = loadTextureImage(shader.shaderPath, texturePath);
   texture.setSurfaceParms(shader.surfaceParms);

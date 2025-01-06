@@ -56,6 +56,7 @@ private:
   QComboBox* m_sortOrderChoice;
   QPushButton* m_groupButton;
   QPushButton* m_usedButton;
+  QPushButton* m_emptyButton;
   QLineEdit* m_filterBox;
   QScrollBar* m_scrollBar;
   EntityBrowserView* m_view;

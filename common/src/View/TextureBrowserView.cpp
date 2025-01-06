@@ -62,6 +62,7 @@ TextureBrowserView::TextureBrowserView(
   , m_document(document)
   , m_group(false)
   , m_hideUnused(false)
+  , m_hideEmpty(false)
   , m_sortOrder(TextureSortOrder::Name)
   , m_selectedTexture(nullptr)
 {
@@ -107,6 +108,19 @@ void TextureBrowserView::setHideUnused(const bool hideUnused)
   invalidate();
   update();
 }
+
+// RB begin
+void TextureBrowserView::setHideEmpty(const bool hideEmpty)
+{
+  if (hideEmpty == m_hideEmpty)
+  {
+    return;
+  }
+  m_hideEmpty = hideEmpty;
+  invalidate();
+  update();
+}
+// RB end
 
 void TextureBrowserView::setFilterText(const std::string& filterText)
 {
@@ -266,6 +280,15 @@ struct TextureBrowserView::MatchUsageCount
   }
 };
 
+struct TextureBrowserView::MatchEmpty
+{
+  template <typename T>
+  bool operator()(const T* t) const
+  {
+    return t->isDefaulted();
+  }
+};
+
 struct TextureBrowserView::MatchName
 {
   std::string pattern;
@@ -313,6 +336,11 @@ void TextureBrowserView::filterTextures(
     textures = kdl::vec_erase_if(std::move(textures), MatchUsageCount());
   if (!m_filterText.empty())
     textures = kdl::vec_erase_if(std::move(textures), MatchName(m_filterText));
+
+  // RB: hide materials weren't loaded because
+  // the BFG edition shipped many materials with missing textures
+  if (m_hideEmpty)
+    textures = kdl::vec_erase_if(std::move(textures), MatchEmpty());
 }
 
 void TextureBrowserView::sortTextures(std::vector<const Assets::Texture*>& textures) const

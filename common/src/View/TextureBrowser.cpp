@@ -154,6 +154,16 @@ void TextureBrowser::createGui(GLContextManager& contextManager)
     m_view->setHideUnused(m_usedButton->isChecked());
   });
 
+  // RB:
+  m_emptyButton = new QPushButton(tr("Hide Bad"));
+  m_emptyButton->setToolTip(tr("Only show materials that have textures"));
+  m_emptyButton->setCheckable(true);
+  // m_emptyButton->setDefault(true);
+  connect(m_emptyButton, &QAbstractButton::clicked, this, [=]() {
+    m_view->setHideEmpty(m_emptyButton->isChecked());
+  });
+  // RB end
+
   m_filterBox = createSearchBox();
   connect(m_filterBox, &QLineEdit::textEdited, this, [=]() {
     m_view->setFilterText(m_filterBox->text().toStdString());
@@ -169,6 +179,7 @@ void TextureBrowser::createGui(GLContextManager& contextManager)
   controlSizer->addWidget(m_sortOrderChoice);
   controlSizer->addWidget(m_groupButton);
   controlSizer->addWidget(m_usedButton);
+  controlSizer->addWidget(m_emptyButton);
   controlSizer->addWidget(m_filterBox, 1);
 
   auto* outerSizer = new QVBoxLayout();

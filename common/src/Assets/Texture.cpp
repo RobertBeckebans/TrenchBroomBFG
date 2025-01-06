@@ -51,6 +51,7 @@ Texture::Texture(
   , m_averageColor{averageColor}
   , m_usageCount{0u}
   , m_overridden{false}
+  , m_defaulted{false}
   , m_format{format}
   , m_type{type}
   , m_culling{TextureCulling::CullDefault}
@@ -79,6 +80,7 @@ Texture::Texture(
   , m_averageColor{averageColor}
   , m_usageCount{0u}
   , m_overridden{false}
+  , m_defaulted{false}
   , m_format{format}
   , m_type{type}
   , m_culling{TextureCulling::CullDefault}
@@ -120,6 +122,7 @@ Texture::Texture(
   , m_averageColor(Color(0.0f, 0.0f, 0.0f, 1.0f))
   , m_usageCount{0u}
   , m_overridden{false}
+  , m_defaulted{false}
   , m_format{format}
   , m_type{type}
   , m_culling{TextureCulling::CullDefault}
@@ -140,6 +143,7 @@ Texture::Texture(Texture&& other)
   , m_averageColor{std::move(other.m_averageColor)}
   , m_usageCount{static_cast<size_t>(other.m_usageCount)}
   , m_overridden{std::move(other.m_overridden)}
+  , m_defaulted{std::move(other.m_defaulted)}
   , m_format{std::move(other.m_format)}
   , m_type{std::move(other.m_type)}
   , m_surfaceParms{std::move(other.m_surfaceParms)}
@@ -161,6 +165,7 @@ Texture& Texture::operator=(Texture&& other)
   m_averageColor = std::move(other.m_averageColor);
   m_usageCount = static_cast<size_t>(other.m_usageCount);
   m_overridden = std::move(other.m_overridden);
+  m_defaulted = std::move(other.m_defaulted);
   m_format = std::move(other.m_format);
   m_type = std::move(other.m_type);
   m_surfaceParms = std::move(other.m_surfaceParms);
@@ -227,11 +232,23 @@ void Texture::setOpaque()
   m_type = TextureType::Opaque;
 }
 
-// RB
+// RB begin
 bool Texture::isTranslucentMaterial() const
 {
   return (m_surfaceParms.find("translucent") != m_surfaceParms.end());
 }
+
+bool Texture::isDefaulted() const
+{
+  return m_defaulted;
+}
+
+void Texture::setDefaulted()
+{
+  m_defaulted = true;
+}
+// RB end
+
 
 const std::set<std::string>& Texture::surfaceParms() const
 {

@@ -62,7 +62,9 @@ Assets::Texture loadDefaultTexture(
       const auto file = fs.openFile(Path("textures/__TB_empty.png"));
       FreeImageTextureReader imageReader(
         IO::TextureReader::StaticNameStrategy(name), fs, logger);
-      return imageReader.readTexture(file);
+      auto tex = imageReader.readTexture(file);
+      tex.setDefaulted();
+      return tex;
     }
     catch (const Exception& e)
     {

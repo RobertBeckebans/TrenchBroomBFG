@@ -110,6 +110,7 @@ private:
 
   std::atomic<size_t> m_usageCount;
   bool m_overridden;
+  bool m_defaulted;
 
   GLenum m_format;
   TextureType m_type;
@@ -192,7 +193,11 @@ public:
   bool masked() const;
   void setOpaque();
 
+  // RB begin
   bool isTranslucentMaterial() const;
+  bool isDefaulted() const;
+  void setDefaulted();
+  // RB end
 
   const std::set<std::string>& surfaceParms() const;
   void setSurfaceParms(std::set<std::string> surfaceParms);
