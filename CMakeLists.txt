@@ -102,7 +102,7 @@ if(TB_ENABLE_ASAN)
 endif()
 
 # Enable SSE4.1 and AVX support for intrinsics (e.g., _mm_blendv_ps) to avoid errors on Linux
-if(UNIX)
+if(UNIX AND (NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64"))
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx")
 endif()
