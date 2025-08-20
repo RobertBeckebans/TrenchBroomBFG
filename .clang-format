@@ -50,6 +50,7 @@ IndentCaseLabels: false
 IndentWidth: 2
 IndentWrappedFunctionNames: false
 KeepEmptyLinesAtTheStartOfBlocks: true
+Language: Cpp
 MaxEmptyLinesToKeep: 2
 NamespaceIndentation: None
 PenaltyBreakBeforeFirstCallParameter: 0
@@ -66,7 +67,7 @@ SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 1
 SpacesInAngles: false
 SpacesInCStyleCastParentheses: false
-SpacesInContainerLiterals: true
+SpacesInContainerLiterals: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 Standard: Cpp11

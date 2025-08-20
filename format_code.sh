@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # keep the following in sync with our supplied clang-format binaries!
-OUR_CLANGFMT_VERSION=13.0.1
+OUR_CLANGFMT_VERSION=18.1.8
 
 print_usage () {
 	#echo "By default, this script only works on Linux i686 or amd64 (with our supplied clang-format binaries)"
@@ -31,11 +31,16 @@ CLANGFMT_BIN=./clang-format.exe
 #CLANGFMT_VERSION=$($CLANGFMT_BIN --version | grep -o -e "[[:digit:]\.]*")
 CLANGFMT_VERSION=$($CLANGFMT_BIN --version | egrep -o "([0-9]{1,}\.)+[0-9]{1,}")
 
+# Compare versions
 if [ "$CLANGFMT_VERSION" != "$OUR_CLANGFMT_VERSION" ]; then
 	echo "ERROR: $CLANGFMT_BIN has version $CLANGFMT_VERSION, but we want $OUR_CLANGFMT_VERSION"
 	echo "       (Unfortunately, different versions of clang-format produce slightly different formatting.)"
 	exit 1
 fi
 
-#find . -regex ".*\.\(c\|cpp\|cc\|cxx\|h\|hpp\)" ! -path "./lib/*" ! -exec $CLANGFMT_BIN -i {} \;
-find . -regex ".*\.\(c\|cpp\|cc\|cxx\|h\|hpp\)" ! -path "./lib/*" ! -path "./vcpkg/*" ! -path "./build/*" ! -print0 | xargs -0 -P 16 $CLANGFMT_BIN -i
+find . -regex ".*\.\(c\|cpp\|cc\|cxx\|h\|hpp\)" \
+	! -path "./lib/*" \
+	! -path "./vcpkg/*" \
+	! -path "./build/*" \
+	! -print0 | xargs -0 -P 16 $CLANGFMT_BIN -i
+echo "Formatting completed!"
