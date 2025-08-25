@@ -50,8 +50,6 @@ Here is an overview of the changes made to TrenchBroom:
 * Some ASE models can't be loaded and materials are usually all wrong if loaded (not an issue with the Doom 3 BFG edition)
 * TrenchBroomBFG doesn't support the "rotation" keyword and many models have the wrong orientation (not an issue with the Doom 3 BFG edition)
 * TrenchBroomBFG breaks compatibility for other id Tech engines, e.g. entity links work between "target[num]" and "name" and not "targetname"
-* Linked groups do not work yet with id Tech 4 due to name conflicts
-* Converting maps into the Valve 220 .map can cause BSP leaks because of floating point precision problems and you have to fix the leaks by adding caulk brushes 
 
 
 ## Releases
