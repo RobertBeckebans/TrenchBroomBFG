@@ -14,13 +14,10 @@ https://github.com/RobertBeckebans/DOOM-3/tree/506-TrenchBroom-interop
 
 TrenchBroomBFG's abilities for Doom 3 are still limited at the moment and it works best with RBDOOM-3-BFG.
 
-You can only save maps to the Doom 3 (Valve) format but you can copy paste from the vanilla Doom 3 .map format into the Doom 3 (Valve) configuration and reset your texture alignment as you want.
+RBDOOM-3-BFG >= 1.6 also has the console command `convertMaptoValve220 <mapname>` which lets you easily convert any original Doom 3 (and BFG) .map and saves it with the _valve220.map suffix. 
+This command prepares Doom 3 maps for editing in TrenchBroomBFG and solves most issues listed below.
 
-RBDOOM-3-BFG >= 1.4 also has the console command `convertMaptoValve220 <mapname>` which lets you easily convert any original Doom 3 (and BFG) .map and saves it with the _valve220.map suffix. This command prepares Doom 3 maps for editing in TrenchBroomBFG and saves a lot of additional work.
-
-In addition the RBDOOM-3-BFG engine framework and ingame light editor can also edit light settings, place new entities or manipulate ragdolls and save them to the new Doom 3 (Valve) .map format so both programs interop with each other.
-
-TrenchBroomBFG is in sync with the latest stable release of ***TrenchBroom 2023.1***.
+TrenchBroomBFG is in sync with the stable release of ***TrenchBroom 2023.1***.
 
 Here is an overview of the changes made to TrenchBroom:
 
